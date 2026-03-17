@@ -30,7 +30,7 @@ export function HeroSection() {
                 Prendre un rendez-vous
               </Button>
             </Link> */}
-            <Link href="/shop">
+            <Link href="/articles">
               <Button
                 size="lg"
                 variant="outline"
