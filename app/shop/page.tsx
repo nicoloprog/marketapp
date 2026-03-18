@@ -1,33 +1,36 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { SiteHeader, SiteFooter } from "@/components/site-layout";
 import {
   Search,
-  ChevronDown,
-  ChevronUp,
-  Car,
   Zap,
   Loader2,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Car,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { formatPrice, type Product } from "@/lib/data";
-import { useCart } from "@/lib/store";
+import { formatPrice } from "@/lib/data";
 import { toast } from "sonner";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const cleanVehicleString = (text: string, type: "make" | "model") => {
-  if (!text) return "";
-  let clean = text
-    .replace(/\b(AWD|4WD|2WD|FWD|RWD|V6|V8|L4|TURBO|SDN|CP|SUV)\b/gi, "")
-    .trim();
-  if (type === "make") return clean.split(" ")[0].toUpperCase();
-  return clean.toUpperCase();
-};
-
 // ── Types ─────────────────────────────────────────────────────────────────────
+type RetailerSource = "amazon" | "shopping";
+
+interface AutoCarePart {
+  partTerminologyName: string;
+  brandLabel: string;
+  partNumber: string;
+  description: string;
+  price?: number;
+  link?: string;
+  thumbnail?: string;
+  source: RetailerSource;
+}
+
 interface CQData {
   makeId: string;
   modelId: string;
@@ -58,37 +61,21 @@ interface VehicleData {
   source: "cache" | "live";
 }
 
-interface AutoCarePart {
-  partTerminologyId: number;
-  partTerminologyName: string;
-  brandLabel: string;
-  partNumber: string;
-  description: string;
-  price?: number;
-  fitmentNotes?: string;
-  link?: string;
-  thumbnail?: string;
-  source?: string;
+// ── Source badge ──────────────────────────────────────────────────────────────
+function SourceBadge({ source }: { source: RetailerSource }) {
+  if (source === "amazon") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] text-[#797a7a]">
+        Amazon.ca
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px]">
+      {/* brandLabel is the actual store name from Google Shopping */}
+    </span>
+  );
 }
-
-type RetailerKey = "amazon" | "walmart" | "rockauto" | "partcity";
-
-type PartsState = Record<RetailerKey, AutoCarePart[]>;
-
-const EMPTY_PARTS: PartsState = {
-  amazon: [],
-  walmart: [],
-  rockauto: [],
-  partcity: [],
-};
-
-// ── Retailer config ───────────────────────────────────────────────────────────
-const RETAILERS: Record<RetailerKey, { label: string; color: string }> = {
-  amazon: { label: "Amazon", color: "text-[#FF9900]" },
-  walmart: { label: "Walmart", color: "text-[#0071CE]" },
-  rockauto: { label: "RockAuto", color: "text-[#CC0000]" },
-  partcity: { label: "Part City", color: "text-[#E31837]" },
-};
 
 // ── Step badge ────────────────────────────────────────────────────────────────
 function StepBadge({
@@ -121,7 +108,7 @@ function StepBadge({
 function VehicleCard({ v }: { v: VehicleData }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div className="rounded-lg border bg-card p-4 text-sm space-y-3">
+    <div className="rounded-lg border bg-card p-4 text-sm space-y-3 max-w-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Car className="h-4 w-4 text-primary" />
@@ -155,7 +142,7 @@ function VehicleCard({ v }: { v: VehicleData }) {
           {v.engineModel || "—"}
         </span>
         <span>
-          <strong className="text-foreground">Type de carburant</strong>:{" "}
+          <strong className="text-foreground">Carburant</strong>:{" "}
           {v.fuelType || "—"}
         </span>
       </div>
@@ -195,7 +182,7 @@ function VehicleCard({ v }: { v: VehicleData }) {
                 {v.cq.horsepower ? `${v.cq.horsepower} PS` : "—"}
               </span>
               <span>
-                <strong className="text-foreground">Weight</strong>:{" "}
+                <strong className="text-foreground">Poids</strong>:{" "}
                 {v.cq.weight ? `${v.cq.weight} kg` : "—"}
               </span>
             </div>
@@ -206,12 +193,12 @@ function VehicleCard({ v }: { v: VehicleData }) {
   );
 }
 
-// ── Image placeholder ─────────────────────────────────────────────────────────
+// ── Placeholder image ─────────────────────────────────────────────────────────
 function ImagePlaceholder() {
   return (
-    <div className="w-full h-36 bg-muted flex items-center justify-center">
+    <div className="w-full h-40 bg-muted flex items-center justify-center">
       <svg
-        className="h-8 w-8 text-muted-foreground/40"
+        className="h-8 w-8 text-muted-foreground/30"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -226,96 +213,134 @@ function ImagePlaceholder() {
 }
 
 // ── Part card ─────────────────────────────────────────────────────────────────
-function PartCard({ part }: { part: AutoCarePart }) {
+function PartCard({
+  part,
+  isCheapest,
+}: {
+  part: AutoCarePart;
+  isCheapest: boolean;
+}) {
   const [imgError, setImgError] = useState(false);
+
   return (
     <a
       href={part.link ?? "#"}
       target="_blank"
       rel="noopener noreferrer"
-      className={`flex flex-col rounded-lg border bg-card overflow-hidden transition-shadow ${
-        part.link ? "hover:shadow-md cursor-pointer" : "cursor-default"
-      }`}
+      className={`relative flex flex-col rounded-xl border bg-card overflow-hidden transition-all group ${
+        part.link
+          ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+          : "cursor-default"
+      } ${isCheapest ? "ring-2 ring-green-500 dark:ring-green-500" : ""}`}
     >
+      {isCheapest && (
+        <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shadow">
+          Meilleur prix
+        </div>
+      )}
+
       {part.thumbnail && !imgError ? (
-        <div className="w-full h-36 bg-muted flex items-center justify-center overflow-hidden">
+        <div className="w-full h-40 bg-muted flex items-center justify-center overflow-hidden">
           <img
             src={part.thumbnail}
             alt={part.partTerminologyName}
-            className="w-full h-full object-contain p-2"
+            className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-200"
             onError={() => setImgError(true)}
           />
         </div>
       ) : (
         <ImagePlaceholder />
       )}
-      <div className="flex flex-col gap-1.5 p-4 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-medium text-sm leading-tight line-clamp-2">
-            {part.partTerminologyName}
-          </h3>
-          {part.price ? (
-            <span className="text-sm font-bold whitespace-nowrap text-primary">
-              {formatPrice(part.price)}
-            </span>
+
+      <div className="flex flex-col gap-2 p-4 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {part.source === "shopping" && (
+              <span className="text-[10px] text-muted-foreground truncate">
+                {part.brandLabel}
+              </span>
+            )}
+            <SourceBadge source={part.source} />
+          </div>
+          {part.link && (
+            <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+          )}
+        </div>
+
+        <h3 className="font-medium text-sm leading-snug line-clamp-2 flex-1">
+          {part.partTerminologyName}
+        </h3>
+
+        <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
+          {part.price != null ? (
+            <div className="flex items-baseline gap-1">
+              <span
+                className={`text-base font-bold ${isCheapest ? "text-green-600 dark:text-green-400" : "text-foreground"}`}
+              >
+                {formatPrice(part.price)}
+              </span>
+              <span className="text-[10px] text-muted-foreground font-medium">
+                CA$
+              </span>
+            </div>
           ) : (
-            <span className="text-xs text-muted-foreground whitespace-nowrap">
-              See site
+            <span className="text-xs text-muted-foreground italic">
+              Voir le site
             </span>
           )}
         </div>
-        <p className="text-[10px] font-mono text-muted-foreground uppercase">
-          {part.brandLabel} — {part.partNumber}
-        </p>
-        <p className="text-xs text-muted-foreground line-clamp-2">
-          {part.description}
-        </p>
       </div>
     </a>
   );
 }
 
-// ── Retailer section with fold/unfold ─────────────────────────────────────────
-const PREVIEW = 3;
+// ── Results grid ──────────────────────────────────────────────────────────────
+const PREVIEW = 8;
 
-function RetailerResults({
-  retailer,
-  parts,
-}: {
-  retailer: RetailerKey;
-  parts: AutoCarePart[];
-}) {
+function ResultsGrid({ parts }: { parts: AutoCarePart[] }) {
   const [expanded, setExpanded] = useState(false);
-  const { label, color } = RETAILERS[retailer];
   if (parts.length === 0) return null;
+
+  const cheapestPrice = parts.find((p) => p.price != null)?.price;
   const visible = expanded ? parts : parts.slice(0, PREVIEW);
   const hiddenCount = parts.length - PREVIEW;
+
   return (
-    <div className="space-y-3">
-      <div className={`flex items-center gap-2 text-sm font-semibold ${color}`}>
-        {label}
-        <span className="text-muted-foreground font-normal">
-          ({parts.length} results)
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span>
+          {parts.length} résultat{parts.length !== 1 ? "s" : ""}
         </span>
+        {cheapestPrice != null && (
+          <span className="text-green-600 dark:text-green-400 font-medium">
+            · Meilleur prix : {formatPrice(cheapestPrice)} CA$
+          </span>
+        )}
       </div>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {visible.map((part, i) => (
-          <PartCard key={i} part={part} />
+          <PartCard
+            key={i}
+            part={part}
+            isCheapest={part.price != null && part.price === cheapestPrice}
+          />
         ))}
       </div>
+
       {parts.length > PREVIEW && (
         <button
           onClick={() => setExpanded((x) => !x)}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors pt-1"
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           {expanded ? (
             <>
-              <ChevronUp className="h-3.5 w-3.5" /> Show less
+              <ChevronUp className="h-3.5 w-3.5" /> Voir moins
             </>
           ) : (
             <>
-              <ChevronDown className="h-3.5 w-3.5" /> Show {hiddenCount} more
-              result{hiddenCount !== 1 ? "s" : ""}
+              <ChevronDown className="h-3.5 w-3.5" /> Voir {hiddenCount}{" "}
+              résultat{hiddenCount !== 1 ? "s" : ""} de plus
             </>
           )}
         </button>
@@ -326,93 +351,82 @@ function RetailerResults({
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function ShopPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
-  const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [make, setMake] = useState("");
-  const [model, setModel] = useState("");
-  const [year, setYear] = useState("");
+  const [allParts, setAllParts] = useState<AutoCarePart[]>([]);
+  const [acLoading, setAcLoading] = useState(false);
+  const [partSearch, setPartSearch] = useState("");
+
+  // VIN state
   const [vin, setVin] = useState("");
   const [vehicle, setVehicle] = useState<VehicleData | null>(null);
   const [vinSteps, setVinSteps] = useState<{
     nhtsa: "idle" | "loading" | "done" | "error";
     carquery: "idle" | "loading" | "done" | "error";
   }>({ nhtsa: "idle", carquery: "idle" });
-  const [acParts, setAcParts] = useState<PartsState>(EMPTY_PARTS);
-  const [acLoading, setAcLoading] = useState(false);
-  const [partSearch, setPartSearch] = useState("");
-  const [acSteps, setAcSteps] = useState<{
-    vehicleLookup: "idle" | "loading" | "done" | "error";
-    partsSearch: "idle" | "loading" | "done" | "error";
-  }>({ vehicleLookup: "idle", partsSearch: "idle" });
-  const { addItem } = useCart();
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [year, setYear] = useState("");
 
-  const sortByPrice = (arr: AutoCarePart[]) =>
-    [...arr].sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
-
-  const mapPart = (item: any): AutoCarePart => ({
-    partTerminologyId: item.partTerminologyId ?? 0,
-    partTerminologyName: item.partTerminologyName ?? item.title ?? "No Title",
-    brandLabel: item.brandLabel ?? item.brand ?? "Unknown",
-    partNumber: item.partNumber ?? item.asin ?? "N/A",
-    description: item.description ?? item.title ?? "",
-    price:
-      typeof item.price === "string"
-        ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
-        : typeof item.price === "number"
-          ? item.price
-          : undefined,
-    link:
-      item.link ??
-      (item.asin ? `https://www.amazon.com/dp/${item.asin}` : undefined),
-    thumbnail: item.thumbnail ?? item.image ?? undefined,
-  });
-
+  // ── Lookup parts via POST /api/search ──────────────────────────────────────
   const lookupParts = useCallback(
-    async (m: string, mo: string, y: string, term: string) => {
-      if (!m || !mo || !y || !term) {
-        toast.error("Please enter vehicle details and part name");
+    async (term: string, m?: string, mo?: string, y?: string) => {
+      if (!term.trim()) {
+        toast.error("Veuillez entrer un nom de produit");
         return;
       }
 
-      console.log("Searching for:", { m, mo, y, term });
-
       setAcLoading(true);
-      setAcParts(EMPTY_PARTS);
-      setAcSteps({ vehicleLookup: "done", partsSearch: "loading" });
+      setAllParts([]);
 
       try {
-        const res = await fetch(`/api/search`, {
+        const res = await fetch("/api/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ year: y, make: m, model: mo, partName: term }),
+          body: JSON.stringify({
+            year: y ?? year,
+            make: m ?? make,
+            model: mo ?? model,
+            partName: term.trim(),
+          }),
         });
-
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
-
         const data = await res.json();
-        console.log("API Response:", data);
 
-        setAcParts({
-          amazon: sortByPrice((data.amazon || []).map(mapPart)),
-          walmart: sortByPrice((data.walmart || []).map(mapPart)),
-          rockauto: sortByPrice((data.rockauto || []).map(mapPart)),
-          partcity: sortByPrice((data.partcity || []).map(mapPart)),
+        const mapPart = (item: any, source: RetailerSource): AutoCarePart => ({
+          partTerminologyName:
+            item.partTerminologyName ?? item.title ?? "Sans titre",
+          brandLabel: item.brandLabel ?? item.brand ?? item.source ?? "Inconnu",
+          partNumber: item.partNumber ?? item.asin ?? "S/O",
+          description: item.description ?? item.title ?? "",
+          price:
+            typeof item.price === "string"
+              ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
+              : typeof item.price === "number"
+                ? item.price
+                : undefined,
+          link: item.link ?? undefined,
+          thumbnail: item.thumbnail ?? undefined,
+          source,
         });
 
-        setAcSteps({ vehicleLookup: "done", partsSearch: "done" });
+        const merged = [
+          ...(data.amazon || []).map((i: any) => mapPart(i, "amazon")),
+          ...(data.shopping || []).map((i: any) => mapPart(i, "shopping")),
+        ].sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
+
+        setAllParts(merged);
+        if (merged.length === 0)
+          toast.info("Aucun résultat trouvé pour cette recherche.");
       } catch (err: any) {
         console.error("Lookup error:", err);
-        setAcSteps({ vehicleLookup: "error", partsSearch: "error" });
-        toast.error("Failed to fetch parts. Check console logs.");
+        toast.error("Échec de la recherche. Vérifiez la console.");
       } finally {
         setAcLoading(false);
       }
     },
-    [],
+    [make, model, year],
   );
 
+  // ── Enrich with vehicle specs ──────────────────────────────────────────────
   const enrichVehicleData = async (targetVin: string) => {
     setVinSteps((prev) => ({ ...prev, carquery: "loading" }));
     try {
@@ -441,14 +455,10 @@ export default function ShopPage() {
     }
   };
 
-  const normalize = (make: string, model: string) => ({
-    brand: make.split(" ")[0].toUpperCase(),
-    cleanModel: model.split(" ")[0].toUpperCase(),
-  });
-
+  // ── Decode VIN ─────────────────────────────────────────────────────────────
   const decodeVIN = async () => {
     if (!vin || vin.length !== 17)
-      return toast.error("Enter valid 17-char VIN");
+      return toast.error("Entrez un VIN valide (17 caractères)");
     setVinSteps({ nhtsa: "loading", carquery: "idle" });
     try {
       const res = await fetch(
@@ -461,19 +471,20 @@ export default function ShopPage() {
       );
       const getVal = (tag: string) =>
         xmlDoc.getElementsByTagName(tag)[0]?.textContent || "";
+
       const rawMake = getVal("Make");
-      const rawModel = getVal("Model");
-      const year = getVal("ModelYear");
-      const { brand, cleanModel } = normalize(rawMake, rawModel);
-      const yearVal = year || "";
-      if (!brand) {
+      const rawModel = getVal("Model").split(" ")[0].toUpperCase();
+      const yearVal = getVal("ModelYear");
+
+      if (!rawMake) {
         setVinSteps({ nhtsa: "error", carquery: "idle" });
-        return toast.error("Invalid VIN");
+        return toast.error("VIN invalide");
       }
+
       setVehicle({
         vin,
-        make: rawMake,
-        model: cleanModel,
+        make: rawMake.toUpperCase(),
+        model: rawModel,
         year: yearVal,
         manufacturer: getVal("Manufacturer"),
         bodyClass: getVal("BodyClass"),
@@ -482,65 +493,34 @@ export default function ShopPage() {
         trim: getVal("Trim"),
         source: "live",
       });
-      setMake(rawMake);
-      setModel(cleanModel);
+      setMake(rawMake.toUpperCase());
+      setModel(rawModel);
       setYear(yearVal);
       setVinSteps({ nhtsa: "done", carquery: "idle" });
-      toast.success(`Identified: ${rawMake} ${cleanModel}`);
+      toast.success(`Identifié : ${rawMake} ${rawModel} ${yearVal}`);
       await enrichVehicleData(vin);
-      await lookupParts(rawMake, cleanModel, yearVal, partSearch);
     } catch {
       setVinSteps({ nhtsa: "error", carquery: "idle" });
-      toast.error("Failed to decode VIN");
+      toast.error("Échec du décodage VIN");
     }
   };
 
-  const fetchProducts = async () => {
-    try {
-      setLoadingProducts(true);
-      const params = new URLSearchParams();
-      if (search) params.append("search", search);
-      if (selectedCategory) params.append("category", selectedCategory);
-      if (make && model && year) {
-        params.append("make", make);
-        params.append("model", model);
-        params.append("year", year);
-      }
-      const url =
-        make && model && year
-          ? `/api/vehicle-parts?${params}`
-          : `/api/products?${params}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed fetch");
-      const data = await res.json();
-      setProducts(Array.isArray(data) ? data : (data.storeInventory ?? []));
-    } catch {
-      setProducts([]);
-    } finally {
-      setLoadingProducts(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, [search, selectedCategory, make, model, year]);
-
-  const hasResults = Object.values(acParts).some((arr) => arr.length > 0);
+  const showPartSearch = vehicle || (make && model && year);
 
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="flex-1 bg-background py-16">
+      <main className="flex-1 bg-gradient-to-r from-slate-600 to-slate-700 py-16">
         <div className="mx-auto max-w-7xl px-4 space-y-12">
           <div className="max-w-2xl">
             <h1 className="text-4xl font-bold">Magasin de pièces</h1>
             <p className="mt-2 text-muted-foreground">
-              Recherchez par VIN pour trouver les pièces compatibles pour votre
-              véhicule.
+              Décodez votre VIN puis recherchez des pièces — prix comparés sur
+              Amazon.ca et Google Shopping.
             </p>
           </div>
 
-          {/* ── Vehicle Identification ── */}
+          {/* ── Step 1: VIN ── */}
           <section className="space-y-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Car className="h-5 w-5 text-primary" /> Identifier votre véhicule
@@ -551,15 +531,17 @@ export default function ShopPage() {
                 value={vin}
                 onChange={(e) => setVin(e.target.value.toUpperCase())}
                 maxLength={17}
+                className=""
               />
               <Button
                 onClick={decodeVIN}
                 disabled={vin.length !== 17 || vinSteps.nhtsa === "loading"}
+                variant="secondary"
               >
                 {vinSteps.nhtsa === "loading" ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  "Analyse VIN"
+                  "Décoder VIN"
                 )}
               </Button>
             </div>
@@ -568,6 +550,8 @@ export default function ShopPage() {
               <StepBadge step={2} label="Specs" status={vinSteps.carquery} />
             </div>
             {vehicle && <VehicleCard v={vehicle} />}
+
+            {/* Manual make/model/year fallback */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 max-w-lg">
               <Input
                 placeholder="Marque"
@@ -583,56 +567,53 @@ export default function ShopPage() {
                 placeholder="Année"
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
+                maxLength={4}
               />
             </div>
           </section>
 
-          {/* ── Fitment Results ── */}
-          {(vehicle || (make && model && year)) && (
-            <section className="space-y-4 pt-6 border-t">
+          {/* ── Step 2: Part search (only after vehicle identified) ── */}
+          {showPartSearch && (
+            <section className="space-y-6 pt-2 border-t">
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" /> Résultats de
-                correspondance
+                <Zap className="h-5 w-5 text-primary" /> Recherchez votre
+                produit
               </h2>
+              {vehicle && (
+                <p className="text-xs text-muted-foreground -mt-3">
+                  Résultats filtrés pour{" "}
+                  <strong className="text-foreground">
+                    {vehicle.year} {vehicle.make} {vehicle.model}
+                  </strong>
+                </p>
+              )}
+
               <div className="flex gap-2 max-w-lg">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    placeholder="Search specific parts (e.g. Filter)"
+                    placeholder="Nom de la pièce (ex. filtre à huile, plaquettes de frein)"
                     value={partSearch}
                     onChange={(e) => setPartSearch(e.target.value)}
                     className="pl-9"
                     onKeyDown={(e) =>
-                      e.key === "Enter" &&
-                      lookupParts(make, model, year, partSearch)
+                      e.key === "Enter" && lookupParts(partSearch)
                     }
                   />
                 </div>
                 <Button
-                  onClick={() => lookupParts(make, model, year, partSearch)}
-                  disabled={acLoading}
-                  variant="secondary"
+                  onClick={() => lookupParts(partSearch)}
+                  disabled={acLoading || !partSearch.trim()}
                 >
                   {acLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    "Rechercher dans le catalogue"
+                    "Rechercher"
                   )}
                 </Button>
               </div>
 
-              {/* Per-retailer results */}
-              {hasResults && (
-                <div className="space-y-8">
-                  {(Object.keys(RETAILERS) as RetailerKey[]).map((key) => (
-                    <RetailerResults
-                      key={key}
-                      retailer={key}
-                      parts={acParts[key]}
-                    />
-                  ))}
-                </div>
-              )}
+              <ResultsGrid parts={allParts} />
             </section>
           )}
         </div>

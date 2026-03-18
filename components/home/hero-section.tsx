@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-background">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_oklch(0.75_0.18_55_/_0.08),_transparent_98%)]" />
+    <section className="relative min-h-[100vh] overflow-hidden bg-gradient-to-r from-slate-600 to-slate-800">
+      <div className="absolute inset-0 " />
       <div className="relative mx-auto max-w-7xl px-4 py-24 lg:py-32">
         <div className="max-w-3xl">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
