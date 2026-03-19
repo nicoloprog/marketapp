@@ -20,6 +20,7 @@ const navLinks = [
   { href: "/", label: "Accueil" },
   { href: "/shop", label: "Voitures" },
   { href: "/articles", label: "Articles" },
+  { href: "/construction", label: "Matériaux" },
 ];
 
 export function SiteHeader() {
@@ -49,10 +50,10 @@ export function SiteHeader() {
               key={link.href}
               href={link.href}
               className={cn(
-                "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "rounded-md px-3 py-2 text-sm font-medium ",
                 pathname === link.href
                   ? "bg-secondary text-primary"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                  : "text-gray-900 hover:bg-secondary hover:text-primary",
               )}
             >
               {link.label}
@@ -161,15 +162,14 @@ export function SiteHeader() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
-              <SheetTitle className="text-left">Menu</SheetTitle>
-              <div className="flex flex-col gap-4 pt-8">
+              <div className="flex flex-col gap-8 pl-6 pt-20">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      "text-sm font-medium transition-colors hover:text-primary",
+                      "text-lg font-medium transition-colors hover:text-primary",
                       pathname === link.href
                         ? "text-primary"
                         : "text-muted-foreground",

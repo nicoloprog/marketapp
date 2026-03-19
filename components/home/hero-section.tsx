@@ -50,6 +50,16 @@ export function HeroSection() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
+            <Link href="/construction">
+              <Button
+                size="lg"
+                variant="outline"
+                className="gap-2 border-border text-foreground hover:bg-secondary"
+              >
+                Matériaux de construction
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

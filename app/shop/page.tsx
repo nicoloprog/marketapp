@@ -510,13 +510,12 @@ export default function ShopPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="flex-1 bg-gradient-to-r from-slate-600 to-slate-700 py-16">
+      <main className="flex-1 bg-gradient-to-r from-slate-500 to-slate-900 py-16">
         <div className="mx-auto max-w-7xl px-4 space-y-12">
           <div className="max-w-2xl">
             <h1 className="text-4xl font-bold">Magasin de pièces</h1>
             <p className="mt-2 text-muted-foreground">
-              Décodez votre VIN puis recherchez des pièces — prix comparés sur
-              Amazon.ca et Google Shopping.
+              Décodez votre VIN puis recherchez des pièces au meilleur prix
             </p>
           </div>
 
