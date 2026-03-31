@@ -9,6 +9,22 @@ function localizeGoogleLink(url: string | null): string | null {
   return url;
 }
 
+// convert ANY price to number
+function getPrice(value: any): number | null {
+  if (!value) return null;
+
+  if (typeof value === "number") return value;
+
+  if (typeof value === "string") {
+    const p = parseFloat(value.replace(/[^0-9.]/g, ""));
+    return isNaN(p) ? null : p;
+  }
+
+  if (value?.extracted_value) return value.extracted_value;
+
+  return null;
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q");
@@ -37,35 +53,41 @@ export async function GET(req: Request) {
       shoppingRes.json(),
     ]);
 
-    const amazon = (amazonData.organic_results || []).map((item: any) => ({
-      partTerminologyName: item.title,
-      brandLabel: item.brand || "Amazon",
-      partNumber: item.asin || "N/A",
-      description: item.title,
-      price:
-        typeof item.price === "string"
-          ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
-          : (item.price?.extracted_value ?? item.price ?? null),
-      // Always prefer amazon.ca direct link
-      link: item.asin
-        ? `https://www.amazon.ca/dp/${item.asin}`
-        : item.link || null,
-      thumbnail: item.thumbnail || item.image || null,
-      source: "amazon" as const,
-    }));
+    const amazon = (amazonData.organic_results || [])
+      .map((item: any) => {
+        const price = getPrice(item.price);
 
-    const shopping = (shoppingData.shopping_results || []).map((item: any) => ({
-      partTerminologyName: item.title,
-      // source = the actual retailer name (e.g. "Best Buy", "Walmart")
-      brandLabel: item.source || "Google Shopping",
-      partNumber: item.product_id || "N/A",
-      description: item.title,
-      price: item.extracted_price ?? item.price ?? null,
-      // product_link is the direct retailer URL — prefer it over Google's redirect link
-      link: item.product_link || localizeGoogleLink(item.link),
-      thumbnail: item.thumbnail || null,
-      source: "shopping" as const,
-    }));
+        return {
+          partTerminologyName: item.title,
+          brandLabel: item.brand || "Amazon",
+          partNumber: item.asin || "N/A",
+          description: item.title,
+          price,
+          link: item.asin
+            ? `https://www.amazon.ca/dp/${item.asin}`
+            : item.link || null,
+          thumbnail: item.thumbnail || item.image || null,
+          source: "amazon" as const,
+        };
+      })
+      .filter((item: any) => item.price !== null && item.price > 1);
+
+    const shopping = (shoppingData.shopping_results || [])
+      .map((item: any) => {
+        const price = getPrice(item.extracted_price ?? item.price);
+
+        return {
+          partTerminologyName: item.title,
+          brandLabel: item.source || "Google Shopping",
+          partNumber: item.product_id || "N/A",
+          description: item.title,
+          price,
+          link: item.product_link || localizeGoogleLink(item.link),
+          thumbnail: item.thumbnail || null,
+          source: "shopping" as const,
+        };
+      })
+      .filter((item: any) => item.price !== null && item.price > 1);
 
     return NextResponse.json({ amazon, shopping });
   } catch (error) {

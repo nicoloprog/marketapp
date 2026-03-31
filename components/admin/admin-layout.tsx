@@ -54,7 +54,7 @@ export async function AdminLayout({ children }: { children: React.ReactNode }) {
             <Wrench className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="text-sm font-bold text-foreground">
-            IronWorks Admin
+            EasyPrice Admin
           </span>
         </div>
         <nav className="flex flex-col gap-1 p-4">
