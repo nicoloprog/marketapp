@@ -254,7 +254,7 @@ function ResultsGrid({
       {items.length > PREVIEW && (
         <button
           onClick={() => setExpanded((x) => !x)}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 text-[13px] bg-[rgba(56,189,248,0.15)] text-[#7dd3fc] border-0 rounded-lg px-[14px] py-1.5 cursor-pointer hover:bg-[rgba(56,189,248,0.25)] transition-colors duration-150"
         >
           {expanded ? (
             <>
@@ -346,36 +346,58 @@ export default function ShopMaterialPage() {
   }, [material, category, quantity, unit, size, sizeUnit]);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#e4e4e4] font-sans">
+      {/* Dot grid */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none" // ← fix #1
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, rgba(90,90,90,0.98) 0.75px, transparent 1px)",
+          backgroundSize: "27px 27px",
+          maskImage:
+            "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
+        }}
+      />
       <SiteHeader />
-      <main className="flex-1 bg-gradient-to-r from-slate-600 to-slate-800 py-16">
-        <div className="mx-auto max-w-7xl px-4 space-y-12">
+
+      <main className="flex-1 flex flex-col items-center py-22 px-4">
+        <div className="w-full max-w-3xl space-y-12">
           {/* ── Header ── */}
-          <div className="max-w-2xl">
-            <h1 className="text-4xl font-bold">Matériaux de construction</h1>
-            <p className="mt-2 text-muted-foreground">
-              Trouvez le meilleur prix pour vos matériaux de construction en
-              comparant les offres
+          <div className="text-center space-y-4">
+            <div className="inline-flex items-center justify-center p-2 bg-primary/10 rounded-full mb-2">
+              <HardHat className="h-6 w-6 text-gray-400" />
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight text-gray-600 sm:text-5xl">
+              De quoi avez-vous <span className="text-primary">besoin ?</span>
+            </h1>
+            <p className="text-slate-400 max-w-lg mx-auto text-lg">
+              Comparez les prix des matériaux de construction instantanément.
             </p>
           </div>
 
-          {/* ── Search form ── */}
-          <section className="space-y-6">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <HardHat className="h-5 w-5 text-primary" /> Recherche de
-              matériaux
-            </h2>
+          {/* ── AI Prompt Style Search ── */}
+          <section className="relative">
+            <div className="relative group bg-[#555] border border-white/10 rounded-2xl p-2 shadow-2xl focus-within:border-primary/50 transition-all duration-300">
+              {/* Main Input */}
+              <div className="flex items-center px-4 pt-2">
+                <Search className="h-5 w-5 text-gray-100 mr-3" />
+                <input
+                  type="text"
+                  placeholder="Recherchez un matériau"
+                  value={material}
+                  onChange={(e) => setMaterial(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && searchMaterials()}
+                  className="w-full bg-transparent border-none focus:ring-0 text-lg placeholder:text-gray-100 py-3"
+                />
+              </div>
 
-            <div className="max-w-2xl space-y-4 rounded-xl border bg-card p-6">
-              {/* Category */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Catégorie
-                </label>
+              {/* Secondary Controls (Pill Style) */}
+              <div className="flex flex-wrap items-center gap-2 p-2 pt-0 border-t border-white/5 mt-2">
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="bg-[#222] border-none text-xs rounded-full px-3 py-1.5 text-slate-300 hover:bg-[#2a2a2a] cursor-pointer outline-none"
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c.value} value={c.value}>
@@ -383,114 +405,76 @@ export default function ShopMaterialPage() {
                     </option>
                   ))}
                 </select>
-              </div>
 
-              {/* Material name */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Matériau <span className="text-destructive">*</span>
-                </label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="ex. contreplaqué, gypse, OSB, tuyau PVC..."
-                    value={material}
-                    onChange={(e) => setMaterial(e.target.value)}
-                    className="pl-9"
-                    onKeyDown={(e) => e.key === "Enter" && searchMaterials()}
-                  />
-                </div>
-              </div>
-
-              {/* Quantity + unit */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Quantité (optionnel)
-                  </label>
-                  <Input
+                <div className="flex items-center bg-[#222] rounded-full px-3 py-1">
+                  <input
                     type="number"
-                    min="1"
-                    placeholder="ex. 10"
+                    placeholder="Qté"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
+                    className="bg-transparent border-none w-12 text-xs focus:ring-0 p-0"
                   />
+                  <span className="text-[10px] text-slate-500 ml-1 border-l border-white/10 pl-1 uppercase">
+                    {unit}
+                  </span>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Unité
-                  </label>
-                  <select
-                    value={unit}
-                    onChange={(e) => setUnit(e.target.value)}
-                    className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    {UNITS.map((u) => (
-                      <option key={u} value={u}>
-                        {u}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
 
-              {/* Grandeur + size unit */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Grandeur (optionnel)
-                  </label>
-                  <Input
-                    placeholder="ex. 4x8, 2x4, 1/2, 5/8..."
+                <div className="flex items-center bg-[#222] rounded-full px-3 py-1">
+                  <input
+                    type="text"
+                    placeholder="Taille (ex: 2x4)"
                     value={size}
                     onChange={(e) => setSize(e.target.value)}
+                    className="bg-transparent border-none w-20 text-xs focus:ring-0 p-0"
                   />
-                  <p className="text-[10px] text-muted-foreground">
-                    Format AxB auto-détecté comme surface
-                  </p>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Unité de grandeur
-                  </label>
-                  <select
-                    value={sizeUnit}
-                    onChange={(e) => setSizeUnit(e.target.value)}
-                    className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    {SIZE_UNIT_GROUPS.map((g) => (
-                      <optgroup key={g.group} label={g.group}>
-                        {g.units.map((u) => (
-                          <option key={u} value={u}>
-                            {u}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </div>
-              </div>
 
-              <Button
-                onClick={searchMaterials}
-                disabled={loading || !material.trim()}
-                className="w-full"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" /> Recherche
-                    en cours...
-                  </>
-                ) : (
-                  "Trouver le meilleur prix"
-                )}
-              </Button>
+                <Button
+                  onClick={searchMaterials}
+                  disabled={loading || !material.trim()}
+                  size="sm"
+                  className="ml-auto rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Rechercher"
+                  )}
+                </Button>
+              </div>
             </div>
 
-            <ResultsGrid items={results} query={lastQuery} />
+            {/* Quick Suggestions (Optional) */}
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+              {["Contreplaqué 4x8", "Béton Mélange", "2x4 Lumber"].map(
+                (suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => setMaterial(suggestion)}
+                    className="text-xs text-slate-500 bg-white/5 border border-white/5 px-3 py-1 rounded-full hover:bg-white/10 transition-colors whitespace-nowrap"
+                  >
+                    {suggestion}
+                  </button>
+                ),
+              )}
+            </div>
           </section>
+
+          {/* ── Results ── */}
+          <div className="pt-8">
+            {loading && (
+              <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                <Loader2 className="h-10 w-10 animate-spin text-primary/50" />
+                <p className="text-slate-400 animate-pulse">
+                  Analyse des meilleurs prix en cours...
+                </p>
+              </div>
+            )}
+            {!loading && <ResultsGrid items={results} query={lastQuery} />}
+          </div>
         </div>
       </main>
+
       <SiteFooter />
     </div>
   );

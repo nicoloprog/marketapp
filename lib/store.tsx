@@ -14,7 +14,7 @@ import type { User } from "@supabase/supabase-js";
 import type { CartItem, Product } from "@/lib/supabase/types";
 import { toast } from "sonner";
 
-// ─── AUTH LOGIC ─────────────────────────────────────────────────────────────
+// ─── AUTH LOGIC ──────────────────────────────────────────────────────────────
 
 interface CustomUser extends User {
   name?: string;
@@ -41,7 +41,8 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
-// Password & Email Helpers
+// ─── Validation helpers ───────────────────────────────────────────────────────
+
 const PASSWORD_RULES = {
   minLength: 8,
   hasUppercase: /[A-Z]/,
@@ -87,7 +88,8 @@ function sanitizeName(name: string) {
     .slice(0, 64);
 }
 
-// Rate limiting
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+
 const registerAttempts = new Map<
   string,
   { count: number; lastAttempt: number }
@@ -117,75 +119,121 @@ function trackAttempt(email: string) {
   }
 }
 
-// Redirect helper
 function resolveRedirect(isAdmin: boolean) {
   return isAdmin ? "/admin" : "/shop";
 }
 
-// ─── AUTH PROVIDER ───────────────────────────────────────────────────────────
+// ─── Profile fetch ────────────────────────────────────────────────────────────
+// Reads the role (USER | ADMIN) from the public.profiles table.
+// This is the source of truth — app_metadata is NOT used.
+
+interface Profile {
+  name: string;
+  role: "USER" | "ADMIN";
+}
+
+async function fetchProfile(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("name, role")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    console.warn("fetchProfile error:", error.message);
+    return null;
+  }
+  return data as Profile;
+}
+
+// ─── Build a CustomUser from a Supabase user + DB profile ────────────────────
+
+function buildUser(supabaseUser: User, profile: Profile | null): CustomUser {
+  const role = profile?.role ?? "USER";
+  return {
+    ...supabaseUser,
+    name:
+      profile?.name ||
+      supabaseUser.user_metadata?.name ||
+      supabaseUser.user_metadata?.full_name ||
+      "User",
+    role,
+    isAdmin: role === "ADMIN",
+  };
+}
+
+// ─── AUTH PROVIDER ────────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<CustomUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const formatUser = (supabaseUser: User | null): CustomUser | null => {
-    if (!supabaseUser) return null;
-    const isAdminFlag = !!(
-      supabaseUser.app_metadata?.is_admin ||
-      supabaseUser.user_metadata?.is_admin
-    );
-    const rawRole = supabaseUser.app_metadata?.role || "CUSTOMER";
-    const normalizedRole =
-      typeof rawRole === "string" ? rawRole.toUpperCase() : "CUSTOMER";
-    return {
-      ...supabaseUser,
-      name:
-        supabaseUser.user_metadata?.name ||
-        supabaseUser.user_metadata?.full_name ||
-        "User",
-      role: normalizedRole,
-      isAdmin: isAdminFlag,
-    };
-  };
-
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(formatUser(session?.user ?? null));
+    // Initial session check
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        setUser(buildUser(session.user, profile));
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 
+    // Listen for auth events (sign in, sign out, token refresh …)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      const formatted = formatUser(session?.user ?? null);
-      setUser(formatted);
-      setLoading(false);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        const formatted = buildUser(session.user, profile);
+        setUser(formatted);
+        setLoading(false);
 
-      if (event === "SIGNED_IN" && formatted)
-        router.push(resolveRedirect(formatted.isAdmin));
-      if (event === "SIGNED_OUT") router.push("/");
+        if (event === "SIGNED_IN") {
+          router.push(resolveRedirect(formatted.isAdmin));
+        }
+      } else {
+        setUser(null);
+        setLoading(false);
+
+        if (event === "SIGNED_OUT") {
+          router.push("/");
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
   }, [router]);
 
+  // ── Login ──────────────────────────────────────────────────────────────────
   const login = async (email: string, password: string) => {
     const cleanEmail = email.trim().toLowerCase();
+
     if (!validateEmail(cleanEmail))
       return { success: false, message: "Invalid email." };
     if (isRateLimited(cleanEmail))
-      return { success: false, message: "Too many attempts." };
+      return {
+        success: false,
+        message: "Too many attempts. Try again in 15 minutes.",
+      };
 
     trackAttempt(cleanEmail);
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password,
       });
-      if (error) return { success: false, message: "Invalid credentials." };
+
+      if (error) {
+        // Don't leak whether email exists — always return a generic message
+        return { success: false, message: "Invalid email or password." };
+      }
+
+      // onAuthStateChange will fire SIGNED_IN and handle redirect + profile fetch
       return { success: true, message: "Welcome back!" };
     } catch {
       return { success: false, message: "Unexpected error during login." };
@@ -194,6 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // ── Register ───────────────────────────────────────────────────────────────
   const register = async (
     email: string,
     password: string,
@@ -206,12 +255,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!validateEmail(cleanEmail))
       return { success: false, message: "Invalid email address." };
     if (cleanName.length < 2)
-      return { success: false, message: "Name is too short." };
+      return { success: false, message: "Name must be at least 2 characters." };
     if (password !== confirmPassword)
       return { success: false, message: "Passwords do not match." };
+
     const passwordCheck = validatePassword(password);
     if (!passwordCheck.valid)
       return { success: false, message: passwordCheck.message };
+
     if (isRateLimited(cleanEmail))
       return { success: false, message: "Too many attempts. Try again later." };
 
@@ -219,16 +270,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
-        options: { data: { name: cleanName } },
+        options: {
+          // name is passed to raw_user_meta_data so the DB trigger can read it
+          data: { name: cleanName },
+        },
       });
+
       if (error) return { success: false, message: error.message };
+
+      // The DB trigger (handle_new_user) automatically inserts a row in
+      // public.profiles with role = 'USER'. Nothing extra needed here.
       return {
         success: true,
-        message:
-          "Account created successfully. Check your email to verify your account.",
+        message: "Account created! Check your email to verify your address.",
       };
     } catch {
       return { success: false, message: "Unexpected registration error." };
@@ -237,6 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = async () => {
     setLoading(true);
     await supabase.auth.signOut();
@@ -260,7 +318,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ─── CART LOGIC ─────────────────────────────────────────────────────────────
+// ─── CART LOGIC ──────────────────────────────────────────────────────────────
 
 interface CartContextType {
   items: CartItem[];
@@ -296,11 +354,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             const res = await fetch(
               `/api/vehicle-parts?make=${vehicle.make}&model=${vehicle.model}&year=${vehicle.year}`,
             );
-
-            if (!res.ok) {
-              throw new Error("Vehicle API failed");
-            }
-
+            if (!res.ok) throw new Error("Vehicle API failed");
             data = await res.json();
           } catch (err) {
             console.warn(
@@ -313,14 +367,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        // Fallback to full catalog if no vehicle-specific data
         if (data.length === 0) {
           const res = await fetch("/api/products");
           if (!res.ok) throw new Error("Local products fetch failed");
           data = await res.json();
         }
 
-        // Set products state
         setProducts(data);
       } catch (err) {
         console.error("Failed to load products:", err);
@@ -350,6 +402,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems((prev) => prev.filter((i) => i.productId !== productId)),
     [],
   );
+
   const updateQuantity = useCallback(
     (productId: string, quantity: number) => {
       if (quantity <= 0) return removeItem(productId);
@@ -359,7 +412,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     },
     [removeItem],
   );
+
   const clearCart = useCallback(() => setItems([]), []);
+
   const getTotal = useCallback(
     () =>
       items.reduce(
@@ -368,6 +423,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       ),
     [items],
   );
+
   const getItemCount = useCallback(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items],
@@ -393,7 +449,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ─── HOOKS ────────────────────────────────────────────────────────────────
+// ─── HOOKS ────────────────────────────────────────────────────────────────────
 
 export function useAuth() {
   const ctx = useContext(AuthContext);

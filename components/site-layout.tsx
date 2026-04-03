@@ -24,10 +24,10 @@ import {
 } from "@radix-ui/react-dropdown-menu";
 
 const navLinks = [
-  // { href: "/", label: "Accueil" },
-  // { href: "/shop", label: "Voitures" },
+  { href: "/", label: "Accueil" },
+  { href: "/shop", label: "Voitures" },
   // { href: "/articles", label: "Articles" },
-  // { href: "/construction", label: "Matériaux" },
+  { href: "/construction", label: "Matériaux" },
 ];
 
 export function SiteHeader() {

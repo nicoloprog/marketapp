@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Sparkles,
-  ShoppingBag,
   Wrench,
   HardHat,
   Search,
@@ -142,13 +141,13 @@ function ResultsGrid({ parts }: { parts: AutoCarePart[] }) {
   const hiddenCount = parts.length - PREVIEW;
 
   return (
-    <div className="results-wrap">
-      <p className="results-count">
+    <div className="flex flex-col gap-4">
+      <p className="text-[13px] text-[#6b95bb]">
         {parts.length} article{parts.length !== 1 ? "s" : ""} trouvé
         {parts.length !== 1 ? "s" : ""}
       </p>
 
-      <div className="results-grid">
+      <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
         {visible.map((part, i) => (
           <PartCard
             key={i}
@@ -161,7 +160,7 @@ function ResultsGrid({ parts }: { parts: AutoCarePart[] }) {
       {parts.length > PREVIEW && (
         <button
           onClick={() => setExpanded((x) => !x)}
-          className="results-toggle"
+          className="inline-flex items-center gap-1.5 text-[13px] bg-[rgba(56,189,248,0.15)] text-[#7dd3fc] border-0 rounded-lg px-[14px] py-1.5 cursor-pointer hover:bg-[rgba(56,189,248,0.25)] transition-colors duration-150"
         >
           {expanded ? (
             <>
@@ -187,7 +186,7 @@ export function HeroSection() {
   const [deleting, setDeleting] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // — Search state (same logic as ShopPage) —
+  // — Search state —
   const [allParts, setAllParts] = useState<AutoCarePart[]>([]);
   const [acLoading, setAcLoading] = useState(false);
   const [partSearch, setPartSearch] = useState("");
@@ -220,7 +219,7 @@ export function HeroSection() {
     return () => clearTimeout(timeout);
   }, [displayed, deleting, wordIndex, mounted]);
 
-  // Search — exact same logic as ShopPage
+  // Search
   const lookupParts = useCallback(async (term: string) => {
     if (!term.trim()) {
       toast.error("Veuillez entrer un nom de produit");
@@ -268,7 +267,6 @@ export function HeroSection() {
   }, []);
 
   const prompts = [
-    // { href: "/articles", label: "Articles en magasin", icon: ShoppingBag },
     { href: "/shop", label: "Pièces de véhicules", icon: Wrench },
     {
       href: "/construction",
@@ -278,54 +276,73 @@ export function HeroSection() {
   ];
 
   return (
-    <section className="hero-root">
-      <div className="hero-grid" aria-hidden />
-      <div className="hero-glow" aria-hidden />
+    <section className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#e4e4e4] font-sans">
+      {/* Dot grid */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, rgba(90,90,90,0.98) 0.75px, transparent 1px)",
+          backgroundSize: "27px 27px",
+          maskImage:
+            "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
+        }}
+      />
 
-      <div className="hero-inner">
-        {/* Badge */}
-        {/* <div className="hero-badge">
-          <span className="hero-badge-dot" />
-          Découvrez les prix les plus bas sur le marché
-          <span className="hero-badge-dot" />
-        </div> */}
+      {/* Blue glow */}
+      <div
+        aria-hidden
+        className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[600px] h-[340px] rounded-[50%] pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse, rgba(56, 155, 236, 0.63) 0%, transparent 70%)",
+        }}
+      />
 
+      <div className="relative max-w-[680px] mx-auto px-6 pt-20 pb-16 flex flex-col items-center text-center">
         {/* Heading — fixed height stops typewriter from shifting elements below */}
-        <div className="hero-heading-wrap">
-          <h1 className="hero-heading">
+        <div className="w-full min-h-[10rem] flex items-center justify-center mb-[1.4rem]">
+          <h1
+            className="font-bold text-[#5f5f5f] leading-[1.18] tracking-[-0.025em] m-0"
+            style={{ fontSize: "clamp(2.4rem, 5.5vw, 3.6rem)" }}
+          >
             Un magasinage{" "}
-            <span className="hero-word">
+            <span className="inline-flex items-center gap-0.5 text-[#388bf8] italic whitespace-nowrap">
               {displayed}
-              <span className="hero-cursor" />
+              <span className="hero-cursor inline-block w-0.5 h-[1em] bg-[#38bdf8] ml-0.5 rounded-[1px]" />
             </span>
           </h1>
         </div>
 
-        <p className="hero-sub">
+        <p className="text-[1.05rem] leading-[1.7] font-semibold text-[#3d3d3d] max-w-[480px] m-0 mb-[1.8rem]">
           Remplacez vos habitudes de magasinage fastidieuses par une expérience
           fluide et agréable. En obtenant les meilleures offres.
         </p>
 
-        {/* ── Search form (same logic as ShopPage) ── */}
-        <div className="hero-search-wrap">
-          <div className="hero-search-inner">
-            <Search size={15} className="hero-search-icon" />
+        {/* ── Search form ── */}
+        <div className="w-full max-w-[480px] mb-[1.4rem]">
+          <div className="hero-search-inner flex items-center gap-2.5 py-2 pr-2 pl-[14px] rounded-[14px] border border-[rgba(56,189,248,0.2)] bg-[rgba(10,16,26,0.7)] backdrop-blur-md transition-colors duration-200">
+            <Search
+              size={15}
+              className="text-[#38bdf8] flex-shrink-0 opacity-60"
+            />
             <input
               type="text"
               value={partSearch}
               onChange={(e) => setPartSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && lookupParts(partSearch)}
               placeholder="Nom du produit (ex. filtre à huile, téléphone…)"
-              className="hero-search-input"
               autoComplete="off"
+              className="flex-1 bg-transparent border-0 outline-none text-[13.5px] text-[#c8dcf0] caret-[#38bdf8] min-w-0 placeholder:text-white font-sans"
             />
             <button
               onClick={() => lookupParts(partSearch)}
               disabled={acLoading || !partSearch.trim()}
-              className="hero-search-btn"
+              className="flex-shrink-0 flex items-center justify-center min-w-24 px-4 py-[7px] rounded-[9px] border-0 bg-[#388bf8] text-white text-[0.85rem] font-semibold cursor-pointer hover:bg-[#2d7de0] disabled:opacity-35 disabled:cursor-default transition-[background,opacity] duration-150 tracking-[-0.01em] font-sans"
             >
               {acLoading ? (
-                <Loader2 size={14} className="hero-search-spinner" />
+                <Loader2 size={14} className="hero-spinner" />
               ) : (
                 "Rechercher"
               )}
@@ -334,28 +351,38 @@ export function HeroSection() {
         </div>
 
         {/* Prompt chips */}
-        <div className="prompt-shell">
-          <div className="prompt-label">
+        <div className="w-full max-w-[480px] border border-[rgba(56,189,248,0.18)] rounded-[16px] bg-[rgba(10,16,26,0.7)] backdrop-blur-md overflow-hidden">
+          <div className="flex items-center gap-1.5 px-4 py-[10px] text-[11px] text-white border-b border-[rgba(56,189,248,0.1)] tracking-[0.05em] uppercase">
             <Sparkles size={12} />
             Que cherchez-vous&nbsp;?
           </div>
-          <div className="prompt-chips">
+          <div className="flex flex-col p-2 gap-1">
             {prompts.map(({ href, label, icon: Icon }) => (
-              <Link href={href} key={href} className="prompt-chip">
-                <Icon size={14} className="prompt-chip-icon" />
+              <Link
+                href={href}
+                key={href}
+                className="group flex items-center gap-2.5 px-[14px] py-[10px] rounded-[10px] border border-transparent bg-transparent text-white text-[13.5px] font-[450] no-underline hover:bg-[rgba(56,189,248,0.07)] hover:border-[rgba(56,189,248,0.2)] hover:text-[#c8dcf0] transition-[background,border-color,color] duration-150"
+              >
+                <Icon
+                  size={14}
+                  className="text-[#388bf8] flex-shrink-0 opacity-75"
+                />
                 {label}
-                <ArrowRight size={12} className="prompt-chip-arrow" />
+                <ArrowRight
+                  size={12}
+                  className="ml-auto opacity-0 text-[#38bdf8] -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-150"
+                />
               </Link>
             ))}
           </div>
         </div>
 
-        {/* Results — appear below the prompt shell on the same page */}
+        {/* Results */}
         {(acLoading || allParts.length > 0) && (
-          <div className="hero-results">
+          <div className="w-full max-w-[900px] mt-10 text-left">
             {acLoading ? (
-              <div className="hero-results-loading">
-                <Loader2 size={20} className="hero-search-spinner" />
+              <div className="flex items-center gap-2.5 text-[#6b7fa3] text-sm">
+                <Loader2 size={20} className="hero-spinner" />
                 <span>Recherche en cours…</span>
               </div>
             ) : (
@@ -365,169 +392,27 @@ export function HeroSection() {
         )}
       </div>
 
-      <div className="hero-sep" aria-hidden />
+      {/* Bottom separator */}
+      <div
+        aria-hidden
+        className="absolute bottom-0 left-0 right-0 h-px"
+        style={{
+          background:
+            "linear-gradient(to right, transparent, rgba(56,189,248,0.2), transparent)",
+        }}
+      />
 
+      {/* Minimal style block — only for what Tailwind cannot express */}
       <style>{`
-        .hero-root {
-          position: relative;
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          overflow: hidden;
-          background: #e4e4e4;
-          font-family: 'DM Sans', 'Inter', sans-serif;
-        }
-        .hero-grid {
-          position: absolute; inset: 0;
-          background-image: radial-gradient(circle, rgba(90, 90, 90, 0.98) 0.75px, transparent 1px);
-          background-size: 15px 15px;
-          mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%);
-        }
-        .hero-glow {
-          position: absolute; top: 20%; left: 50%;
-          transform: translateX(-50%);
-          width: 600px; height: 340px; border-radius: 50%;
-          background: radial-gradient(ellipse, rgba(56, 155, 236, 0.78) 0%, transparent 70%);
-          pointer-events: none;
-        }
-        .hero-inner {
-          position: relative;
-          max-width: 680px; margin: 0 auto;
-          padding: 5rem 1.5rem 4rem;
-          display: flex; flex-direction: column; align-items: center; text-align: center;
-        }
-        .hero-badge {
-          display: inline-flex; align-items: center; gap: 12px;
-          padding: 5px 16px; border-radius: 999px;
-          border: 1px solid rgb(56, 191, 248); background: rgba(164, 164, 164, 0.07);
-          color: #000000; font-size: 0.7rem; font-weight: 600; letter-spacing: .05em;
-          margin-bottom: 2rem; font-family: 'DM Mono', monospace;
-        }
-        .hero-badge-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: #38bdf8; box-shadow: 0 0 6px #38bdf8;
-          animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        @keyframes blink  { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:.4} }
+        @keyframes spin   { to{transform:rotate(360deg)} }
 
-        .hero-heading-wrap {
-          width: 100%; min-height: 10rem;
-          display: flex; align-items: center; justify-content: center;
-          margin-bottom: 1.4rem;
-        }
-        .hero-heading {
-          font-size: clamp(2.4rem, 5.5vw, 3.6rem); font-weight: 700;
-          color: #5f5f5f; line-height: 1.18; letter-spacing: -.025em; margin: 0;
-        }
-        .hero-word {
-          display: inline-flex; align-items: center; gap: 2px;
-          color: #388bf8; font-style: italic; white-space: nowrap;
-        }
-        .hero-cursor {
-          display: inline-block; width: 2px; height: 1em;
-          background: #38bdf8; margin-left: 2px; border-radius: 1px;
-          animation: blink .85s step-start infinite;
-        }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        .hero-cursor { animation: blink .85s step-start infinite; }
+        .hero-spinner { animation: spin .7s linear infinite; }
 
-        .hero-sub {
-          font-size: 1.05rem; line-height: 1.7; font-weight: 600; color: #3d3d3d;
-          max-width: 480px; margin: 0 0 1.8rem;
-        }
-
-        /* Search bar */
-        .hero-search-wrap {
-          width: 100%; max-width: 480px; margin-bottom: 1.4rem;
-        }
-        .hero-search-inner {
-          display: flex; align-items: center; gap: 10px;
-          padding: 8px 8px 8px 14px; border-radius: 14px;
-          border: 1px solid rgba(56,189,248,.2);
-          background: rgba(10,16,26,.7); backdrop-filter: blur(12px);
-          transition: border-color .2s;
-        }
-        .hero-search-inner:focus-within { border-color: rgba(56,189,248,.45); }
-        .hero-search-icon { color: #38bdf8; flex-shrink: 0; opacity: .6; }
-        .hero-search-input {
-          flex: 1; background: transparent; border: none; outline: none;
-          font-size: 13.5px; font-family: 'DM Sans', sans-serif;
-          color: #c8dcf0; caret-color: #38bdf8; min-width: 0;
-        }
-        .hero-search-input::placeholder { color: #ffffff; }
-        .hero-search-btn {
-          flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-          min-width: 96px; padding: 7px 16px; border-radius: 9px; border: none;
-          background: #388bf8; color: #fff; font-size: 0.85rem; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
-          transition: background .15s, opacity .15s; letter-spacing: -.01em;
-        }
-        .hero-search-btn:hover:not(:disabled) { background: #388bf8; }
-        .hero-search-btn:disabled { opacity: .35; cursor: default; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .hero-search-spinner { animation: spin .7s linear infinite; }
-
-        /* Prompt shell */
-        .prompt-shell {
-          width: 100%; max-width: 480px;
-          border: 1px solid rgba(56,189,248,.18); border-radius: 16px;
-          background: rgba(10,16,26,.7); backdrop-filter: blur(12px); overflow: hidden;
-        }
-        .prompt-label {
-          display: flex; align-items: center; gap: 6px;
-          padding: 10px 16px; font-size: 11px; font-family: 'DM Mono', monospace;
-          color: #ffffff; border-bottom: 1px solid rgba(56,189,248,.1);
-          letter-spacing: .05em; text-transform: uppercase;
-        }
-        .prompt-chips { display: flex; flex-direction: column; padding: 8px; gap: 4px; }
-        .prompt-chip {
-          display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-          border-radius: 10px; border: 1px solid transparent; background: transparent;
-          color: #ffffff; font-size: 13.5px; font-weight: 450; text-decoration: none;
-          transition: background .15s, border-color .15s, color .15s;
-        }
-        .prompt-chip:hover {
-          background: rgba(56,189,248,.07); border-color: rgba(56,189,248,.2); color: #c8dcf0;
-        }
-        .prompt-chip-icon { color: #388bf8; flex-shrink: 0; opacity: .75; }
-        .prompt-chip-arrow {
-          margin-left: auto; opacity: 0; color: #38bdf8;
-          transform: translateX(-4px); transition: opacity .15s, transform .15s;
-        }
-        .prompt-chip:hover .prompt-chip-arrow { opacity: 1; transform: translateX(0); }
-
-        /* Results */
-        .hero-results {
-          width: 100%; max-width: 900px; margin-top: 2.5rem;
-          text-align: left;
-        }
-        .hero-results-loading {
-          display: flex; align-items: center; gap: 10px;
-          color: #6b7fa3; font-size: 14px;
-        }
-        .results-wrap { display: flex; flex-direction: column; gap: 16px; }
-        .results-count { font-size: 13px; color: #6b95bb; }
-        .results-grid {
-          display: grid; gap: 16px;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        }
-        .results-toggle {
-          display: inline-flex; align-items: center; gap: 6px;
-          font-size: 13px; background: rgba(56,189,248,.15);
-          color: #7dd3fc; border: none; border-radius: 8px;
-          padding: 6px 14px; cursor: pointer;
-          transition: background .15s;
-        }
-        .results-toggle:hover { background: rgba(56,189,248,.25); }
-
-        .hero-sep {
-          position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
-          background: linear-gradient(to right, transparent, rgba(56,189,248,.2), transparent);
-        }
-        @media (max-width: 600px) {
-          .hero-inner { padding: 4rem 1rem 3rem; }
-          .hero-heading { font-size: 2rem; }
-          .hero-heading-wrap { min-height: 6rem; }
+        .hero-search-inner:focus-within {
+          border-color: rgba(56,189,248,0.45);
         }
       `}</style>
     </section>
