@@ -276,7 +276,7 @@ export function HeroSection() {
   ];
 
   return (
-    <section cclassName="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#e4e4e4] font-sans">
+    <section className="relative overflow-hidden">
       {/* Dot grid */}
       <div
         aria-hidden
