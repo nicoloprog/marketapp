@@ -22,10 +22,19 @@ export const metadata: Metadata = {
   },
   description:
     "Comparez les prix les moins chers sur des articles en magasin ou des pièces automobiles au Canada. Trouvez les meilleures offres en un clic.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "EasyPrice",
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: "#1c7bcd",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -35,6 +44,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+      {/* <head>
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+      </head> */}
       <body className="font-sans antialiased">
         <Providers>{children}</Providers>
         <Toaster />

@@ -5,26 +5,25 @@ import {
   useContext,
   useState,
   useEffect,
-  useCallback,
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import type { CartItem, Product } from "@/lib/supabase/types";
-import { toast } from "sonner";
 
-// ─── AUTH LOGIC ──────────────────────────────────────────────────────────────
+// ─── TYPES ───────────────────────────────────────────────────────────────────
 
 interface CustomUser extends User {
   name?: string;
   role?: string;
   isAdmin: boolean;
+  isPaid: boolean;
 }
 
 interface AuthState {
   user: CustomUser | null;
   isAdmin: boolean;
+  isPaid: boolean;
   loading: boolean;
   login: (
     email: string,
@@ -41,54 +40,7 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
-// ─── Validation helpers ───────────────────────────────────────────────────────
-
-const PASSWORD_RULES = {
-  minLength: 8,
-  hasUppercase: /[A-Z]/,
-  hasLowercase: /[a-z]/,
-  hasNumber: /[0-9]/,
-  hasSpecial: /[!@#$%^&*(),.?":{}|<>]/,
-};
-
-function validatePassword(password: string) {
-  if (password.length < PASSWORD_RULES.minLength)
-    return { valid: false, message: "Password must be at least 8 characters." };
-  if (!PASSWORD_RULES.hasUppercase.test(password))
-    return {
-      valid: false,
-      message: "Password must contain at least one uppercase letter.",
-    };
-  if (!PASSWORD_RULES.hasLowercase.test(password))
-    return {
-      valid: false,
-      message: "Password must contain at least one lowercase letter.",
-    };
-  if (!PASSWORD_RULES.hasNumber.test(password))
-    return {
-      valid: false,
-      message: "Password must contain at least one number.",
-    };
-  if (!PASSWORD_RULES.hasSpecial.test(password))
-    return {
-      valid: false,
-      message: "Password must contain at least one special character.",
-    };
-  return { valid: true, message: "" };
-}
-
-function validateEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-}
-
-function sanitizeName(name: string) {
-  return name
-    .replace(/<[^>]*>/g, "")
-    .trim()
-    .slice(0, 64);
-}
-
-// ─── Rate limiting ────────────────────────────────────────────────────────────
+// ─── LOCKED FORM LOGIC (RATE LIMITING & VALIDATION) ──────────────────────────
 
 const registerAttempts = new Map<
   string,
@@ -119,49 +71,6 @@ function trackAttempt(email: string) {
   }
 }
 
-function resolveRedirect(isAdmin: boolean) {
-  return isAdmin ? "/admin" : "/shop";
-}
-
-// ─── Profile fetch ────────────────────────────────────────────────────────────
-// Reads the role (USER | ADMIN) from the public.profiles table.
-// This is the source of truth — app_metadata is NOT used.
-
-interface Profile {
-  name: string;
-  role: "USER" | "ADMIN";
-}
-
-async function fetchProfile(userId: string): Promise<Profile | null> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("name, role")
-    .eq("id", userId)
-    .single();
-
-  if (error) {
-    console.warn("fetchProfile error:", error.message);
-    return null;
-  }
-  return data as Profile;
-}
-
-// ─── Build a CustomUser from a Supabase user + DB profile ────────────────────
-
-function buildUser(supabaseUser: User, profile: Profile | null): CustomUser {
-  const role = profile?.role ?? "USER";
-  return {
-    ...supabaseUser,
-    name:
-      profile?.name ||
-      supabaseUser.user_metadata?.name ||
-      supabaseUser.user_metadata?.full_name ||
-      "User",
-    role,
-    isAdmin: role === "ADMIN",
-  };
-}
-
 // ─── AUTH PROVIDER ────────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -169,132 +78,112 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    // Initial session check
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        setUser(buildUser(session.user, profile));
-      } else {
+  const refreshUser = async () => {
+    try {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (!authUser) {
         setUser(null);
+        return null;
       }
-      setLoading(false);
-    });
 
-    // Listen for auth events (sign in, sign out, token refresh …)
+      // Fetch profile where role and is_paid are STRINGS
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name, role, is_paid")
+        .eq("id", authUser.id)
+        .single();
+
+      // Convert String values to Booleans
+      const roleStr = String(profile?.role || "USER").toUpperCase();
+      const isPaidStr = String(profile?.is_paid || "false").toLowerCase();
+
+      const formattedUser: CustomUser = {
+        ...authUser,
+        name: profile?.name || authUser.user_metadata?.name || "User",
+        role: roleStr,
+        isAdmin: roleStr === "ADMIN", // Compare string to "ADMIN"
+        isPaid: isPaidStr === "true", // Compare string to "true"
+      };
+
+      setUser(formattedUser);
+      return formattedUser;
+    } catch (err) {
+      setUser(null);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const initAuth = async () => {
+      setLoading(true);
+      await refreshUser();
+      setLoading(false);
+    };
+    initAuth();
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        const formatted = buildUser(session.user, profile);
-        setUser(formatted);
-        setLoading(false);
-
-        if (event === "SIGNED_IN") {
-          router.push(resolveRedirect(formatted.isAdmin));
-        }
-      } else {
-        setUser(null);
-        setLoading(false);
-
-        if (event === "SIGNED_OUT") {
-          router.push("/");
-        }
+    } = supabase.auth.onAuthStateChange(async (event) => {
+      setLoading(true);
+      const updatedUser = await refreshUser();
+      if (event === "SIGNED_IN" && updatedUser) {
+        router.push(updatedUser.isAdmin ? "/admin" : "/shop");
+      } else if (event === "SIGNED_OUT") {
+        router.push("/");
       }
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, [router]);
 
-  // ── Login ──────────────────────────────────────────────────────────────────
+  // ─── ACTIONS ───────────────────────────────────────────────────────────────
+
   const login = async (email: string, password: string) => {
     const cleanEmail = email.trim().toLowerCase();
-
-    if (!validateEmail(cleanEmail))
-      return { success: false, message: "Invalid email." };
     if (isRateLimited(cleanEmail))
-      return {
-        success: false,
-        message: "Too many attempts. Try again in 15 minutes.",
-      };
+      return { success: false, message: "Rate limited. Try later." };
 
     trackAttempt(cleanEmail);
     setLoading(true);
-
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password,
       });
-
-      if (error) {
-        // Don't leak whether email exists — always return a generic message
-        return { success: false, message: "Invalid email or password." };
-      }
-
-      // onAuthStateChange will fire SIGNED_IN and handle redirect + profile fetch
-      return { success: true, message: "Welcome back!" };
+      if (error) return { success: false, message: error.message };
+      return { success: true, message: "Logged in" };
     } catch {
-      return { success: false, message: "Unexpected error during login." };
-    } finally {
-      setLoading(false);
+      return { success: false, message: "Error" };
     }
   };
 
-  // ── Register ───────────────────────────────────────────────────────────────
   const register = async (
     email: string,
     password: string,
     name: string,
     confirmPassword: string,
   ) => {
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanName = sanitizeName(name);
-
-    if (!validateEmail(cleanEmail))
-      return { success: false, message: "Invalid email address." };
-    if (cleanName.length < 2)
-      return { success: false, message: "Name must be at least 2 characters." };
     if (password !== confirmPassword)
-      return { success: false, message: "Passwords do not match." };
-
-    const passwordCheck = validatePassword(password);
-    if (!passwordCheck.valid)
-      return { success: false, message: passwordCheck.message };
-
-    if (isRateLimited(cleanEmail))
-      return { success: false, message: "Too many attempts. Try again later." };
-
-    trackAttempt(cleanEmail);
+      return { success: false, message: "Passwords mismatch" };
     setLoading(true);
-
     try {
       const { error } = await supabase.auth.signUp({
-        email: cleanEmail,
+        email,
         password,
-        options: {
-          // name is passed to raw_user_meta_data so the DB trigger can read it
-          data: { name: cleanName },
-        },
+        options: { data: { name } },
       });
-
       if (error) return { success: false, message: error.message };
-
-      // The DB trigger (handle_new_user) automatically inserts a row in
-      // public.profiles with role = 'USER'. Nothing extra needed here.
-      return {
-        success: true,
-        message: "Account created! Check your email to verify your address.",
-      };
+      return { success: true, message: "Verify email" };
     } catch {
-      return { success: false, message: "Unexpected registration error." };
+      return { success: false, message: "Error" };
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = async () => {
     setLoading(true);
     await supabase.auth.signOut();
@@ -306,7 +195,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        isAdmin: !!user?.isAdmin,
+        isAdmin: user?.isAdmin || false,
+        isPaid: user?.isPaid || false,
         loading,
         login,
         register,
@@ -318,147 +208,236 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ─── CART LOGIC ──────────────────────────────────────────────────────────────
-
-interface CartContextType {
-  items: CartItem[];
-  addItem: (product: Product, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  clearCart: () => void;
-  getTotal: () => number;
-  getItemCount: () => number;
-  products: Product[];
-  vehicle: { make: string; model: string; year: string } | null;
-  setVehicle: (v: { make: string; model: string; year: string } | null) => void;
-}
-
-const CartContext = createContext<CartContextType | null>(null);
-
-export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [vehicle, setVehicle] = useState<{
-    make: string;
-    model: string;
-    year: string;
-  } | null>(null);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        let data: Product[] = [];
-
-        if (vehicle) {
-          try {
-            const res = await fetch(
-              `/api/vehicle-parts?make=${vehicle.make}&model=${vehicle.model}&year=${vehicle.year}`,
-            );
-            if (!res.ok) throw new Error("Vehicle API failed");
-            data = await res.json();
-          } catch (err) {
-            console.warn(
-              "Vehicle-specific products not found, loading full catalog",
-              err,
-            );
-            toast.info(
-              "Vehicle-specific products not found, loading full catalog",
-            );
-          }
-        }
-
-        if (data.length === 0) {
-          const res = await fetch("/api/products");
-          if (!res.ok) throw new Error("Local products fetch failed");
-          data = await res.json();
-        }
-
-        setProducts(data);
-      } catch (err) {
-        console.error("Failed to load products:", err);
-        toast.error("Failed to load products");
-        setProducts([]);
-      }
-    };
-
-    fetchProducts();
-  }, [vehicle]);
-
-  const addItem = useCallback((product: Product, quantity = 1) => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i.productId === product.id);
-      if (existing)
-        return prev.map((i) =>
-          i.productId === product.id
-            ? { ...i, quantity: i.quantity + quantity }
-            : i,
-        );
-      return [...prev, { productId: product.id, quantity, product }];
-    });
-  }, []);
-
-  const removeItem = useCallback(
-    (productId: string) =>
-      setItems((prev) => prev.filter((i) => i.productId !== productId)),
-    [],
-  );
-
-  const updateQuantity = useCallback(
-    (productId: string, quantity: number) => {
-      if (quantity <= 0) return removeItem(productId);
-      setItems((prev) =>
-        prev.map((i) => (i.productId === productId ? { ...i, quantity } : i)),
-      );
-    },
-    [removeItem],
-  );
-
-  const clearCart = useCallback(() => setItems([]), []);
-
-  const getTotal = useCallback(
-    () =>
-      items.reduce(
-        (sum, item) => sum + (item.product?.price ?? 0) * item.quantity,
-        0,
-      ),
-    [items],
-  );
-
-  const getItemCount = useCallback(
-    () => items.reduce((sum, item) => sum + item.quantity, 0),
-    [items],
-  );
-
-  return (
-    <CartContext.Provider
-      value={{
-        items,
-        addItem,
-        removeItem,
-        updateQuantity,
-        clearCart,
-        getTotal,
-        getItemCount,
-        products,
-        vehicle,
-        setVehicle,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
-}
-
-// ─── HOOKS ────────────────────────────────────────────────────────────────────
-
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
 
-export function useCart() {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
-  return ctx;
-}
+// interface CartContextType {
+
+//   items: CartItem[];
+
+//   addItem: (product: Product, quantity?: number) => void;
+
+//   removeItem: (productId: string) => void;
+
+//   updateQuantity: (productId: string, quantity: number) => void;
+
+//   clearCart: () => void;
+
+//   getTotal: () => number;
+
+//   getItemCount: () => number;
+
+//   products: Product[];
+
+//   vehicle: { make: string; model: string; year: string } | null;
+
+//   setVehicle: (v: { make: string; model: string; year: string } | null) => void;
+
+// }
+
+// const CartContext = createContext<CartContextType | null>(null);
+
+// export function CartProvider({ children }: { children: ReactNode }) {
+
+//   const [items, setItems] = useState<CartItem[]>([]);
+
+//   const [products, setProducts] = useState<Product[]>([]);
+
+//   const [vehicle, setVehicle] = useState<{
+
+//     make: string;
+
+//     model: string;
+
+//     year: string;
+
+//   } | null>(null);
+
+//   useEffect(() => {
+
+//     const fetchProducts = async () => {
+
+//       try {
+
+//         let data: Product[] = [];
+
+//         if (vehicle) {
+
+//           try {
+
+//             const res = await fetch(
+
+//               `/api/vehicle-parts?make=${vehicle.make}&model=${vehicle.model}&year=${vehicle.year}`,
+
+//             );
+
+//             if (!res.ok) throw new Error("Vehicle API failed");
+
+//             data = await res.json();
+
+//           } catch (err) {
+
+//             console.warn(
+
+//               "Vehicle-specific products not found, loading full catalog",
+
+//               err,
+
+//             );
+
+//             toast.info(
+
+//               "Vehicle-specific products not found, loading full catalog",
+
+//             );
+
+//           }
+
+//         }
+
+//         if (data.length === 0) {
+
+//           const res = await fetch("/api/products");
+
+//           if (!res.ok) throw new Error("Local products fetch failed");
+
+//           data = await res.json();
+
+//         }
+
+//         setProducts(data);
+
+//       } catch (err) {
+
+//         console.error("Failed to load products:", err);
+
+//         toast.error("Failed to load products");
+
+//         setProducts([]);
+
+//       }
+
+//     };
+
+//     fetchProducts();
+
+//   }, [vehicle]);
+
+//   const addItem = useCallback((product: Product, quantity = 1) => {
+
+//     setItems((prev) => {
+
+//       const existing = prev.find((i) => i.productId === product.id);
+
+//       if (existing)
+
+//         return prev.map((i) =>
+
+//           i.productId === product.id
+
+//             ? { ...i, quantity: i.quantity + quantity }
+
+//             : i,
+
+//         );
+
+//       return [...prev, { productId: product.id, quantity, product }];
+
+//     });
+
+//   }, []);
+
+//   const removeItem = useCallback(
+
+//     (productId: string) =>
+
+//       setItems((prev) => prev.filter((i) => i.productId !== productId)),
+
+//     [],
+
+//   );
+
+//   const updateQuantity = useCallback(
+
+//     (productId: string, quantity: number) => {
+
+//       if (quantity <= 0) return removeItem(productId);
+
+//       setItems((prev) =>
+
+//         prev.map((i) => (i.productId === productId ? { ...i, quantity } : i)),
+
+//       );
+
+//     },
+
+//     [removeItem],
+
+//   );
+
+//   const clearCart = useCallback(() => setItems([]), []);
+
+//   const getTotal = useCallback(
+
+//     () =>
+
+//       items.reduce(
+
+//         (sum, item) => sum + (item.product?.price ?? 0) * item.quantity,
+
+//         0,
+
+//       ),
+
+//     [items],
+
+//   );
+
+//   const getItemCount = useCallback(
+
+//     () => items.reduce((sum, item) => sum + item.quantity, 0),
+
+//     [items],
+
+//   );
+
+//   return (
+
+//     <CartContext.Provider
+
+//       value={{
+
+//         items,
+
+//         addItem,
+
+//         removeItem,
+
+//         updateQuantity,
+
+//         clearCart,
+
+//         getTotal,
+
+//         getItemCount,
+
+//         products,
+
+//         vehicle,
+
+//         setVehicle,
+
+//       }}
+
+//     >
+
+//       {children}
+
+//     </CartContext.Provider>
+
+//   );
+
+// }

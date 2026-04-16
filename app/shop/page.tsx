@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/data";
 import { toast } from "sonner";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RetailerSource = "amazon" | "shopping";
@@ -508,147 +509,153 @@ export default function ShopPage() {
   const showPartSearch = vehicle || (make && model && year);
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#e4e4e4] font-sans">
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(90,90,90,0.98) 0.75px, transparent 1px)",
-          backgroundSize: "27px 27px",
-          maskImage:
-            "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
-        }}
-      />
-      <SiteHeader />
+    <ProtectedRoute>
+      <div className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#e4e4e4] font-sans">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(90,90,90,0.98) 0.75px, transparent 1px)",
+            backgroundSize: "27px 27px",
+            maskImage:
+              "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
+          }}
+        />
 
-      <main className="flex-1 flex flex-col items-center py-32 px-4">
-        <div className="w-full max-w-4xl space-y-10">
-          {/* ── Header: Minimalist & Tech-focused ── */}
-          <div className="text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs  tracking-widest uppercase">
-              <Zap className="h-3 w-3" /> Pièces de vehicules
-            </div>
-            <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl bg-gradient-to-b from-gray-400 to-gray-600 bg-clip-text text-transparent">
-              Identifiez. <span className="text-[#388bf8]">Trouvez.</span>{" "}
-              Réparez.
-            </h1>
-          </div>
+        <SiteHeader />
 
-          {/* ── Step 1: The VIN "Prompt" ── */}
-          <section className="relative max-w-2xl mx-auto w-full">
-            <div className="relative group bg-[rgba(10,16,26,0.7)] border border-white/10 rounded-2xl p-2 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] focus-within:ring-1 ring-primary/50 transition-all">
-              <div className="flex items-center px-4 py-2">
-                <Car className="h-5 w-5 text-white mr-3" />
-                <input
-                  type="text"
-                  placeholder="Entrez votre VIN ..."
-                  value={vin}
-                  onChange={(e) => setVin(e.target.value.toUpperCase())}
-                  maxLength={17}
-                  onKeyDown={(e) => e.key === "Enter" && decodeVIN()}
-                  className="w-full bg-transparent border-none focus:ring-0 text-md  placeholder:text-gray-100 py-3 tracking-widest"
-                />
-                <Button
-                  onClick={decodeVIN}
-                  disabled={vin.length !== 17 || vinSteps.nhtsa === "loading"}
-                  size="sm"
-                  className="rounded-xl bg-white text-black hover:bg-slate-200"
-                >
-                  {vinSteps.nhtsa === "loading" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Identifier"
-                  )}
-                </Button>
+        <main className="flex-1 flex flex-col items-center py-32 px-4">
+          <div className="w-full max-w-4xl space-y-10">
+            {/* ── Header: Minimalist & Tech-focused ── */}
+            <div className="text-center space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs  tracking-widest uppercase">
+                <Zap className="h-3 w-3" /> Pièces de vehicules
               </div>
-
-              {/* Real-time Status Indicators */}
-              <div className="flex gap-4 px-4 pb-2 border-t border-white/5 pt-2 mt-2">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`h-1.5 w-1.5 rounded-full ${vinSteps.nhtsa === "done" ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-slate-700"}`}
-                  />
-                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
-                    NHTSA Database
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`h-1.5 w-1.5 rounded-full ${vinSteps.carquery === "done" ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-slate-700"}`}
-                  />
-                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
-                    Engine Specs
-                  </span>
-                </div>
-              </div>
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl bg-gradient-to-b from-gray-400 to-gray-600 bg-clip-text text-transparent">
+                Identifiez. <span className="text-[#388bf8]">Trouvez.</span>{" "}
+                Réparez.
+              </h1>
             </div>
-          </section>
 
-          {/* ── Step 2: Vehicle Insight & Part Search ── */}
-          {showPartSearch && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
-              {/* Sleek Vehicle Status Card */}
-              {vehicle && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase text-slate-500 font-bold">
-                      Véhicule Détecté
-                    </p>
-                    <h3 className="text-gray-600 text-xl font-bold">
-                      {vehicle.year} {vehicle.make}
-                    </h3>
-                    <p className="text-gray-600 text-sm ">
-                      {vehicle.model} {vehicle.trim}
-                    </p>
+            {/* ── Step 1: The VIN "Prompt" ── */}
+            <section className="relative max-w-2xl mx-auto w-full">
+              <div className="relative group bg-[rgba(10,16,26,0.7)] border border-white/10 rounded-2xl p-2 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] focus-within:ring-1 ring-primary/50 transition-all">
+                <div className="flex items-center px-4 py-2">
+                  <Car className="h-5 w-5 text-white mr-3" />
+                  <input
+                    type="text"
+                    placeholder="Entrez votre VIN ..."
+                    value={vin}
+                    onChange={(e) => setVin(e.target.value.toUpperCase())}
+                    maxLength={17}
+                    onKeyDown={(e) => e.key === "Enter" && decodeVIN()}
+                    className="w-full bg-transparent border-none focus:ring-0 text-md  placeholder:text-gray-100 py-3 tracking-widest"
+                  />
+                  <Button
+                    onClick={decodeVIN}
+                    disabled={vin.length !== 17 || vinSteps.nhtsa === "loading"}
+                    size="sm"
+                    className="rounded-xl bg-white text-black hover:bg-slate-200"
+                  >
+                    {vinSteps.nhtsa === "loading" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Identifier"
+                    )}
+                  </Button>
+                </div>
+
+                {/* Real-time Status Indicators */}
+                <div className="flex gap-4 px-4 pb-2 border-t border-white/5 pt-2 mt-2">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`h-1.5 w-1.5 rounded-full ${vinSteps.nhtsa === "done" ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-slate-700"}`}
+                    />
+                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
+                      NHTSA Database
+                    </span>
                   </div>
-                  <div className="md:border-l border-white/10 md:pl-6 space-y-2">
-                    <p className="text-[10px] uppercase text-slate-500 font-bold">
-                      Moteur & Transmission
-                    </p>
-                    <div className="text-xs text-gray-600 space-y-1">
-                      <p>Type: {vehicle.engineModel || "N/A"}</p>
-                      <p>Carburant: {vehicle.fuelType || "N/A"}</p>
-                      {vehicle.cq && <p>Traction: {vehicle.cq.drive}</p>}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`h-1.5 w-1.5 rounded-full ${vinSteps.carquery === "done" ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-slate-700"}`}
+                    />
+                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
+                      Engine Specs
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ── Step 2: Vehicle Insight & Part Search ── */}
+            {showPartSearch && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
+                {/* Sleek Vehicle Status Card */}
+                {vehicle && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase text-slate-500 font-bold">
+                        Véhicule Détecté
+                      </p>
+                      <h3 className="text-gray-600 text-xl font-bold">
+                        {vehicle.year} {vehicle.make}
+                      </h3>
+                      <p className="text-gray-600 text-sm ">
+                        {vehicle.model} {vehicle.trim}
+                      </p>
+                    </div>
+                    <div className="md:border-l border-white/10 md:pl-6 space-y-2">
+                      <p className="text-[10px] uppercase text-slate-500 font-bold">
+                        Moteur & Transmission
+                      </p>
+                      <div className="text-xs text-gray-600 space-y-1">
+                        <p>Type: {vehicle.engineModel || "N/A"}</p>
+                        <p>Carburant: {vehicle.fuelType || "N/A"}</p>
+                        {vehicle.cq && <p>Traction: {vehicle.cq.drive}</p>}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Part Search "Prompt" */}
-              <div className="max-w-2xl mx-auto w-full space-y-4">
-                <div className="relative group bg-primary/35 border border-primary/20 rounded-2xl p-2 focus-within:border-primary/50 transition-all">
-                  <div className="flex items-center px-4 py-1">
-                    <Search className="h-5 w-5 text-gray-600 mr-3" />
-                    <input
-                      type="text"
-                      placeholder="Quelle pièce recherchez-vous ? (ex: Disques de frein)"
-                      value={partSearch}
-                      onChange={(e) => setPartSearch(e.target.value)}
-                      onKeyDown={(e) =>
-                        e.key === "Enter" && lookupParts(partSearch)
-                      }
-                      className="w-full text-gray-600 bg-transparent border-none focus:ring-0 text-lg placeholder:text-gray-600 py-3"
-                    />
-                    <Button
-                      onClick={() => lookupParts(partSearch)}
-                      disabled={acLoading || !partSearch.trim()}
-                      variant="ghost"
-                      className="hover:bg-primary/20 text-gray-600"
-                    >
-                      {acLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Zap className="h-5 w-5" />
-                      )}
-                    </Button>
+                {/* Part Search "Prompt" */}
+                <div className="max-w-2xl mx-auto w-full space-y-4">
+                  <div className="relative group bg-primary/35 border border-primary/20 rounded-2xl p-2 focus-within:border-primary/50 transition-all">
+                    <div className="flex items-center px-4 py-1">
+                      <Search className="h-5 w-5 text-gray-600 mr-3" />
+                      <input
+                        type="text"
+                        placeholder="Quelle pièce recherchez-vous ? (ex: Disques de frein)"
+                        value={partSearch}
+                        onChange={(e) => setPartSearch(e.target.value)}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && lookupParts(partSearch)
+                        }
+                        className="w-full text-gray-600 bg-transparent border-none focus:ring-0 text-lg placeholder:text-gray-600 py-3"
+                      />
+                      <Button
+                        onClick={() => lookupParts(partSearch)}
+                        disabled={acLoading || !partSearch.trim()}
+                        variant="ghost"
+                        className="hover:bg-primary/20 text-gray-600"
+                      >
+                        {acLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Zap className="h-5 w-5" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                </div>
 
-                {/* Quick Filters */}
-                <div className="flex gap-2 justify-center">
-                  {["Filtre à huile", "Bougies", "Plaquettes", "Batterie"].map(
-                    (tag) => (
+                  {/* Quick Filters */}
+                  <div className="flex gap-2 justify-center">
+                    {[
+                      "Filtre à huile",
+                      "Bougies",
+                      "Plaquettes",
+                      "Batterie",
+                    ].map((tag) => (
                       <button
                         key={tag}
                         onClick={() => {
@@ -659,21 +666,21 @@ export default function ShopPage() {
                       >
                         + {tag}
                       </button>
-                    ),
-                  )}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Results Grid */}
+                <div className="pt-4">
+                  <ResultsGrid parts={allParts} />
                 </div>
               </div>
+            )}
+          </div>
+        </main>
 
-              {/* Results Grid */}
-              <div className="pt-4">
-                <ResultsGrid parts={allParts} />
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
-
-      <SiteFooter />
-    </div>
+        <SiteFooter />
+      </div>
+    </ProtectedRoute>
   );
 }

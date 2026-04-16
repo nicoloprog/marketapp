@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/data";
 import { toast } from "sonner";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RetailerSource = "amazon" | "shopping";
@@ -346,136 +347,138 @@ export default function ShopMaterialPage() {
   }, [material, category, quantity, unit, size, sizeUnit]);
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#e4e4e4] font-sans">
-      {/* Dot grid */}
-      <div
-        aria-hidden
-        className="absolute inset-0 pointer-events-none" // ← fix #1
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(90,90,90,0.98) 0.75px, transparent 1px)",
-          backgroundSize: "27px 27px",
-          maskImage:
-            "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
-        }}
-      />
-      <SiteHeader />
+    <ProtectedRoute>
+      <div className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#e4e4e4] font-sans">
+        {/* Dot grid */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none" // ← fix #1
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(90,90,90,0.98) 0.75px, transparent 1px)",
+            backgroundSize: "27px 27px",
+            maskImage:
+              "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
+          }}
+        />
+        <SiteHeader />
 
-      <main className="flex-1 flex flex-col items-center py-22 px-4">
-        <div className="w-full max-w-3xl space-y-12">
-          {/* ── Header ── */}
-          <div className="text-center space-y-4">
-            <div className="inline-flex items-center justify-center p-2 bg-primary/10 rounded-full mb-2">
-              <HardHat className="h-6 w-6 text-gray-400" />
-            </div>
-            <h1 className="text-4xl font-bold tracking-tight text-gray-600 sm:text-5xl">
-              De quoi avez-vous <span className="text-primary">besoin ?</span>
-            </h1>
-            <p className="text-slate-400 max-w-lg mx-auto text-lg">
-              Comparez les prix des matériaux de construction instantanément.
-            </p>
-          </div>
-
-          {/* ── AI Prompt Style Search ── */}
-          <section className="relative">
-            <div className="relative group bg-[#555] border border-white/10 rounded-2xl p-2 shadow-2xl focus-within:border-primary/50 transition-all duration-300">
-              {/* Main Input */}
-              <div className="flex items-center px-4 pt-2">
-                <Search className="h-5 w-5 text-gray-100 mr-3" />
-                <input
-                  type="text"
-                  placeholder="Recherchez un matériau"
-                  value={material}
-                  onChange={(e) => setMaterial(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && searchMaterials()}
-                  className="w-full bg-transparent border-none focus:ring-0 text-lg placeholder:text-gray-100 py-3"
-                />
+        <main className="flex-1 flex flex-col items-center py-22 px-4">
+          <div className="w-full max-w-3xl space-y-12">
+            {/* ── Header ── */}
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center p-2 bg-primary/10 rounded-full mb-2">
+                <HardHat className="h-6 w-6 text-gray-400" />
               </div>
+              <h1 className="text-4xl font-bold tracking-tight text-gray-600 sm:text-5xl">
+                De quoi avez-vous <span className="text-primary">besoin ?</span>
+              </h1>
+              <p className="text-slate-400 max-w-lg mx-auto text-lg">
+                Comparez les prix des matériaux de construction instantanément.
+              </p>
+            </div>
 
-              {/* Secondary Controls (Pill Style) */}
-              <div className="flex flex-wrap items-center gap-2 p-2 pt-0 border-t border-white/5 mt-2">
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="bg-[#222] border-none text-xs rounded-full px-3 py-1.5 text-slate-300 hover:bg-[#2a2a2a] cursor-pointer outline-none"
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="flex items-center bg-[#222] rounded-full px-3 py-1">
-                  <input
-                    type="number"
-                    placeholder="Qté"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    className="bg-transparent border-none w-12 text-xs focus:ring-0 p-0"
-                  />
-                  <span className="text-[10px] text-slate-500 ml-1 border-l border-white/10 pl-1 uppercase">
-                    {unit}
-                  </span>
-                </div>
-
-                <div className="flex items-center bg-[#222] rounded-full px-3 py-1">
+            {/* ── AI Prompt Style Search ── */}
+            <section className="relative">
+              <div className="relative group bg-[#555] border border-white/10 rounded-2xl p-2 shadow-2xl focus-within:border-primary/50 transition-all duration-300">
+                {/* Main Input */}
+                <div className="flex items-center px-4 pt-2">
+                  <Search className="h-5 w-5 text-gray-100 mr-3" />
                   <input
                     type="text"
-                    placeholder="Taille (ex: 2x4)"
-                    value={size}
-                    onChange={(e) => setSize(e.target.value)}
-                    className="bg-transparent border-none w-20 text-xs focus:ring-0 p-0"
+                    placeholder="Recherchez un matériau"
+                    value={material}
+                    onChange={(e) => setMaterial(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && searchMaterials()}
+                    className="w-full bg-transparent border-none focus:ring-0 text-lg placeholder:text-gray-100 py-3"
                   />
                 </div>
 
-                <Button
-                  onClick={searchMaterials}
-                  disabled={loading || !material.trim()}
-                  size="sm"
-                  className="ml-auto rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-6"
-                >
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Rechercher"
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            {/* Quick Suggestions (Optional) */}
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-              {["Contreplaqué 4x8", "Béton Mélange", "2x4 Lumber"].map(
-                (suggestion) => (
-                  <button
-                    key={suggestion}
-                    onClick={() => setMaterial(suggestion)}
-                    className="text-xs text-slate-500 bg-white/5 border border-white/5 px-3 py-1 rounded-full hover:bg-white/10 transition-colors whitespace-nowrap"
+                {/* Secondary Controls (Pill Style) */}
+                <div className="flex flex-wrap items-center gap-2 p-2 pt-0 border-t border-white/5 mt-2">
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="bg-[#222] border-none text-xs rounded-full px-3 py-1.5 text-slate-300 hover:bg-[#2a2a2a] cursor-pointer outline-none"
                   >
-                    {suggestion}
-                  </button>
-                ),
-              )}
-            </div>
-          </section>
+                    {CATEGORIES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
 
-          {/* ── Results ── */}
-          <div className="pt-8">
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-20 space-y-4">
-                <Loader2 className="h-10 w-10 animate-spin text-primary/50" />
-                <p className="text-slate-400 animate-pulse">
-                  Analyse des meilleurs prix en cours...
-                </p>
+                  <div className="flex items-center bg-[#222] rounded-full px-3 py-1">
+                    <input
+                      type="number"
+                      placeholder="Qté"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      className="bg-transparent border-none w-12 text-xs focus:ring-0 p-0"
+                    />
+                    <span className="text-[10px] text-slate-500 ml-1 border-l border-white/10 pl-1 uppercase">
+                      {unit}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center bg-[#222] rounded-full px-3 py-1">
+                    <input
+                      type="text"
+                      placeholder="Taille (ex: 2x4)"
+                      value={size}
+                      onChange={(e) => setSize(e.target.value)}
+                      className="bg-transparent border-none w-20 text-xs focus:ring-0 p-0"
+                    />
+                  </div>
+
+                  <Button
+                    onClick={searchMaterials}
+                    disabled={loading || !material.trim()}
+                    size="sm"
+                    className="ml-auto rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+                  >
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Rechercher"
+                    )}
+                  </Button>
+                </div>
               </div>
-            )}
-            {!loading && <ResultsGrid items={results} query={lastQuery} />}
-          </div>
-        </div>
-      </main>
 
-      <SiteFooter />
-    </div>
+              {/* Quick Suggestions (Optional) */}
+              <div className="mt-4 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                {["Contreplaqué 4x8", "Béton Mélange", "2x4 Lumber"].map(
+                  (suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() => setMaterial(suggestion)}
+                      className="text-xs text-slate-500 bg-white/5 border border-white/5 px-3 py-1 rounded-full hover:bg-white/10 transition-colors whitespace-nowrap"
+                    >
+                      {suggestion}
+                    </button>
+                  ),
+                )}
+              </div>
+            </section>
+
+            {/* ── Results ── */}
+            <div className="pt-8">
+              {loading && (
+                <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                  <Loader2 className="h-10 w-10 animate-spin text-primary/50" />
+                  <p className="text-slate-400 animate-pulse">
+                    Analyse des meilleurs prix en cours...
+                  </p>
+                </div>
+              )}
+              {!loading && <ResultsGrid items={results} query={lastQuery} />}
+            </div>
+          </div>
+        </main>
+
+        <SiteFooter />
+      </div>
+    </ProtectedRoute>
   );
 }

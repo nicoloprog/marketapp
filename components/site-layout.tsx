@@ -13,7 +13,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-import { useAuth, useCart } from "@/lib/store";
+import { useAuth } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -33,9 +33,7 @@ const navLinks = [
 export function SiteHeader() {
   const pathname = usePathname();
   const { user, isAdmin, logout, loading } = useAuth();
-  const { getItemCount } = useCart();
   const [open, setOpen] = useState(false);
-  const itemCount = getItemCount();
 
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4">

@@ -14,6 +14,7 @@ import {
 import { useEffect, useState, useCallback } from "react";
 import { formatPrice } from "@/lib/data";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/store";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RetailerSource = "amazon" | "shopping";
@@ -185,6 +186,8 @@ export function HeroSection() {
   const [displayed, setDisplayed] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { user, isPaid } = useAuth();
+  const [showLockMsg, setShowLockMsg] = useState(false);
 
   // — Search state —
   const [allParts, setAllParts] = useState<AutoCarePart[]>([]);
@@ -283,8 +286,8 @@ export function HeroSection() {
         className="absolute inset-0"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(90,90,90,0.98) 0.75px, transparent 1px)",
-          backgroundSize: "27px 27px",
+            "radial-gradient(circle, rgba(0, 50, 120, 0.27) 1px, transparent 1px)",
+          backgroundSize: "19px 19px",
           maskImage:
             "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
         }}
@@ -296,7 +299,7 @@ export function HeroSection() {
         className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[600px] h-[340px] rounded-[50%] pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse, rgba(56, 155, 236, 0.63) 0%, transparent 70%)",
+            "radial-gradient(ellipse, rgba(52, 148, 227, 0.63) 0%, transparent 70%)",
         }}
       />
 
@@ -307,7 +310,8 @@ export function HeroSection() {
             className="font-bold text-[#5f5f5f] leading-[1.18] tracking-[-0.025em] m-0"
             style={{ fontSize: "clamp(2.4rem, 5.5vw, 3.6rem)" }}
           >
-            Un magasinage{" "}
+            Un magasinage
+            <br />{" "}
             <span className="inline-flex items-center gap-0.5 text-[#388bf8] italic whitespace-nowrap">
               {displayed}
               <span className="hero-cursor inline-block w-0.5 h-[1em] bg-[#38bdf8] ml-0.5 rounded-[1px]" />
@@ -315,39 +319,84 @@ export function HeroSection() {
           </h1>
         </div>
 
-        <p className="text-[1.05rem] leading-[1.7] font-semibold text-[#3d3d3d] max-w-[480px] m-0 mb-[1.8rem]">
+        <p className="text-[1.15rem] leading-[1.25] font-semibold text-[#3d3d3d] max-w-[500px] m-0 mb-[1.8rem]">
           Remplacez vos habitudes de magasinage fastidieuses par une expérience
           fluide et agréable. En obtenant les meilleures offres.
         </p>
 
         {/* ── Search form ── */}
         <div className="w-full max-w-[480px] mb-[1.4rem]">
-          <div className="hero-search-inner flex items-center gap-2.5 py-2 pr-2 pl-[14px] rounded-[14px] border border-[rgba(56,189,248,0.2)] bg-[rgba(10,16,26,0.7)] backdrop-blur-md transition-colors duration-200">
-            <Search
-              size={15}
-              className="text-[#38bdf8] flex-shrink-0 opacity-60"
-            />
-            <input
-              type="text"
-              value={partSearch}
-              onChange={(e) => setPartSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && lookupParts(partSearch)}
-              placeholder="Nom du produit (ex. filtre à huile, téléphone…)"
-              autoComplete="off"
-              className="flex-1 bg-transparent border-0 outline-none text-[13.5px] text-[#c8dcf0] caret-[#38bdf8] min-w-0 placeholder:text-white font-sans"
-            />
-            <button
-              onClick={() => lookupParts(partSearch)}
-              disabled={acLoading || !partSearch.trim()}
-              className="flex-shrink-0 flex items-center justify-center min-w-24 px-4 py-[7px] rounded-[9px] border-0 bg-[#388bf8] text-white text-[0.85rem] font-semibold cursor-pointer hover:bg-[#2d7de0] disabled:opacity-35 disabled:cursor-default transition-[background,opacity] duration-150 tracking-[-0.01em] font-sans"
+          <div className="relative">
+            <div
+              className={`hero-search-inner flex items-center gap-2.5 py-2 pr-2 pl-[14px] rounded-[14px] border border-[rgba(56,189,248,0.2)] bg-[rgba(10,16,26,0.7)] backdrop-blur-md transition-colors duration-200 ${
+                !isPaid ? "opacity-60 select-none" : ""
+              }`}
             >
-              {acLoading ? (
-                <Loader2 size={14} className="hero-spinner" />
-              ) : (
-                "Rechercher"
-              )}
-            </button>
+              <Search
+                size={15}
+                className="text-[#38bdf8] flex-shrink-0 opacity-60"
+              />
+              <input
+                type="text"
+                value={partSearch}
+                onChange={(e) => isPaid && setPartSearch(e.target.value)}
+                onKeyDown={(e) =>
+                  isPaid && e.key === "Enter" && lookupParts(partSearch)
+                }
+                onFocus={() => !isPaid && setShowLockMsg(true)}
+                placeholder="Nom du produit (ex. filtre à huile, téléphone…)"
+                autoComplete="off"
+                readOnly={!isPaid}
+                className="flex-1 bg-transparent border-0 outline-none text-[13.5px] text-[#c8dcf0] caret-[#38bdf8] min-w-0 placeholder:text-white font-sans"
+              />
+              <button
+                onClick={() =>
+                  isPaid ? lookupParts(partSearch) : setShowLockMsg(true)
+                }
+                disabled={isPaid && (acLoading || !partSearch.trim())}
+                className="flex-shrink-0 flex items-center justify-center min-w-24 px-4 py-[7px] rounded-[9px] border-0 bg-[#388bf8] text-white text-[0.85rem] font-semibold cursor-pointer hover:bg-[#2d7de0] disabled:opacity-35 disabled:cursor-default transition-[background,opacity] duration-150 tracking-[-0.01em] font-sans"
+              >
+                {acLoading ? (
+                  <Loader2 size={14} className="hero-spinner" />
+                ) : (
+                  "Rechercher"
+                )}
+              </button>
+            </div>
+
+            {/* Invisible click-catcher for non-paid users */}
+            {!isPaid && (
+              <div
+                className="absolute inset-0 cursor-pointer rounded-[14px]"
+                onClick={() => setShowLockMsg(true)}
+              />
+            )}
           </div>
+
+          {/* Inline lock message */}
+          {showLockMsg && !isPaid && (
+            <div className="mt-2 flex items-center gap-2 rounded-[10px] border border-[rgba(29, 29, 29, 0.3)] bg-[rgba(36, 165, 251, 0.56)] px-4 py-2.5 text-[12.5px] text-[#000000]">
+              <span>🔒</span>
+              <span>
+                Cette fonctionnalité est réservée aux membres payants.{" "}
+                <Link
+                  href="/register"
+                  className="underline font-semibold hover:text-yellow-300 transition-colors"
+                >
+                  Créer un compte
+                </Link>{" "}
+                ou{" "}
+                <Link
+                  href="/login"
+                  className="underline font-semibold hover:text-yellow-300 transition-colors"
+                >
+                  se connecter
+                </Link>
+                .
+              </span>
+              <span>🔒</span>
+            </div>
+          )}
         </div>
 
         {/* Prompt chips */}
