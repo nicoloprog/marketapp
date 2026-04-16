@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter, Space_Grotesk, Montserrat } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { Toaster } from "@/components/ui/sonner";
+import { PwaRegister } from "@/components/pwa-register";
+import { WelcomeTrigger } from "@/components/pwa/WelcomeTrigger";
+import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -16,18 +18,19 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "EasyPrice - Comparez les prix les moins chers au Canada",
-    template: "%s | EasyPrice",
-  },
+  title: "Costra",
   description:
     "Comparez les prix les moins chers sur des articles en magasin ou des pièces automobiles au Canada. Trouvez les meilleures offres en un clic.",
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "EasyPrice",
+    title: "Costra",
   },
+  icons: [
+    { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
+    { rel: "icon", url: "/icon-192x192.png" },
+  ],
 };
 
 export const viewport: Viewport = {
@@ -44,11 +47,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
-      {/* <head>
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-      </head> */}
       <body className="font-sans antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <PwaRegister />
+          <WelcomeTrigger />
+          {children}
+        </Providers>
+
         <Toaster />
         <Analytics />
       </body>

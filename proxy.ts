@@ -52,29 +52,28 @@ export async function proxy(request: NextRequest) {
   }
 
   // --- DEBUG LOGS ---
-  if (pathname.startsWith("/admin") || pathname === "/login") {
-    console.log("---------------------------------------");
-    console.log(`🔍 Path: ${pathname}`);
-    console.log(`👤 User: ${user?.email || "Not Logged In"}`);
-    console.log(`🤖 Final Resolved Role: "${role}"`);
-    console.log(
-      `✅ Is Admin? ${role === "ADMIN" || user?.email === "doe@gmail.com"}`,
-    );
-    console.log("---------------------------------------");
-  }
+  // if (pathname.startsWith("/admin") || pathname === "/login") {
+  //   console.log("---------------------------------------");
+  //   console.log(`🔍 Path: ${pathname}`);
+  //   console.log(`👤 User: ${user?.email || "Not Logged In"}`);
+  //   console.log(`🤖 Final Resolved Role: "${role}"`);
+  //   console.log(
+  //     `✅ Is Admin? ${role === "ADMIN" || user?.email === "doe@gmail.com"}`,
+  //   );
+  //   console.log("---------------------------------------");
+  // }
 
   // 4. PROTECT THE ADMIN ROUTE
   if (pathname.startsWith("/admin")) {
     const isDeveloper = user?.email === "doe@gmail.com";
-    if (!user || (role !== "ADMIN" && !isDeveloper)) {
+    if (!user || role !== "ADMIN") {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
 
   // 5. REDIRECT AWAY FROM LOGIN IF LOGGED IN
   if ((pathname === "/login" || pathname === "/register") && user) {
-    const target =
-      role === "ADMIN" || user.email === "doe@gmail.com" ? "/admin" : "/";
+    const target = role === "ADMIN" ? "/admin" : "/shop";
     return NextResponse.redirect(new URL(target, request.url));
   }
 

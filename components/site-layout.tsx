@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Ship, Menu, UserIcon, LayoutDashboard, LogOut } from "lucide-react";
@@ -40,11 +41,15 @@ export function SiteHeader() {
       <div className="pointer-events-auto inline-flex w-full max-w-3xl items-center gap-1 rounded-full border border-slate-900/[.13] bg-white/70 px-3.5 py-1.5 shadow-[0_4px_20px_rgba(30,41,59,0.09),0_1px_3px_rgba(30,41,59,0.06)] backdrop-blur-xl">
         {/* Logo */}
         <Link href="/" className="mr-2 flex shrink-0 items-center gap-2">
-          <div className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500">
-            <Ship className="h-3.5 w-3.5 text-white" />
-          </div>
-          <span className="text-[13.5px] font-bold tracking-tight text-slate-900">
-            EasyPrice
+          <Image
+            src="/dealotter.png"
+            alt="Costra"
+            width={27}
+            height={27}
+            className="rounded-2xl"
+          />
+          <span className="text-[13.5px] font-bold italic tracking-tight text-slate-700">
+            Costra
           </span>
         </Link>
 
@@ -182,7 +187,7 @@ export function SiteHeader() {
                   <Ship className="h-4 w-4 text-white" />
                 </div>
                 <span className="text-[15px] font-bold tracking-tight text-slate-900">
-                  EasyPrice
+                  Costra
                 </span>
               </div>
 
@@ -253,7 +258,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-card">
       <div className="mx-auto max-w-7xl px-4 py-12 text-center text-sm text-muted-foreground">
-        © 2026 EasyPrice. All rights reserved.
+        © 2026 Costra. All rights reserved.
       </div>
     </footer>
   );
