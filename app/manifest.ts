@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Costra - Comparez les prix les moins chers au Canada",
-    short_name: "Costra",
+    name: "BanditPrice - Comparez les prix les moins chers au Canada",
+    short_name: "BanditPrice",
     orientation: "any",
     display: "standalone",
     dir: "auto",

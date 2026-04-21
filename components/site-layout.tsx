@@ -42,14 +42,14 @@ export function SiteHeader() {
         {/* Logo */}
         <Link href="/" className="mr-2 flex shrink-0 items-center gap-2">
           <Image
-            src="/dealotter.png"
-            alt="Costra"
+            src="/banditprice.png"
+            alt="BanditPrice Logo"
             width={27}
             height={27}
-            className="rounded-2xl"
+            className="rounded-sm"
           />
           <span className="text-[13.5px] font-bold italic tracking-tight text-slate-700">
-            Costra
+            BanditPrice
           </span>
         </Link>
 
@@ -187,7 +187,7 @@ export function SiteHeader() {
                   <Ship className="h-4 w-4 text-white" />
                 </div>
                 <span className="text-[15px] font-bold tracking-tight text-slate-900">
-                  Costra
+                  BanditPrice
                 </span>
               </div>
 
@@ -258,7 +258,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-card">
       <div className="mx-auto max-w-7xl px-4 py-12 text-center text-sm text-muted-foreground">
-        © 2026 Costra. All rights reserved.
+        © 2026 BanditPrice. All rights reserved.
       </div>
     </footer>
   );

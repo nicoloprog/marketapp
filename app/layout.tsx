@@ -18,14 +18,14 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Costra",
+  title: "BanditPrice",
   description:
     "Comparez les prix les moins chers sur des articles en magasin ou des pièces automobiles au Canada. Trouvez les meilleures offres en un clic.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Costra",
+    title: "BanditPrice",
   },
   icons: [
     { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
@@ -47,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
-      <body className="font-sans antialiased">
+      <body>
         <Providers>
           <PwaRegister />
           <WelcomeTrigger />

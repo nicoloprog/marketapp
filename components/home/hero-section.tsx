@@ -31,7 +31,7 @@ interface AutoCarePart {
 }
 
 // ── Typewriter words ──────────────────────────────────────────────────────────
-const WORDS = ["simple", "rapide", "efficace", "intelligent"];
+const WORDS = ["pas cher", "intelligent", "simple", "rapide"];
 
 // ── Placeholder image ─────────────────────────────────────────────────────────
 function ImagePlaceholder() {
@@ -279,27 +279,42 @@ export function HeroSection() {
   ];
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative min-h-[100svh] overflow-hidden">
       {/* Dot grid */}
       <div
         aria-hidden
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(0, 50, 120, 0.27) 1px, transparent 1px)",
-          backgroundSize: "19px 19px",
-          maskImage:
-            "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
-        }}
-      />
+        className="absolute inset-0 z-[-1] overflow-hidden bg-[#020617]"
+      >
+        {/* Layer 1: The Deep Ocean Radial Gradient (Glow) */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 40%, rgba(7, 89, 133, 0.25) 0%, rgba(2, 6, 23, 1) 80%)",
+          }}
+        />
+
+        {/* Layer 3: Your Original Dots (Refined for Ocean theme) */}
+        <div
+          aria-hidden
+          className="absolute inset-0 min-h-full"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(0, 50, 120, 0.35) 1px, transparent 1px)",
+            backgroundSize: "19px 19px",
+            maskImage:
+              "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
+          }}
+        />
+      </div>
 
       {/* Blue glow */}
       <div
         aria-hidden
-        className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[600px] h-[340px] rounded-[50%] pointer-events-none"
+        className="absolute top-[60%] left-1/2 -translate-x-1/2 w-[1800px] h-[240px] rounded-[50%] pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse, rgba(52, 148, 227, 0.63) 0%, transparent 70%)",
+            "radial-gradient(ellipse, rgba(52, 148, 227, 0.45) 0%,  transparent 70%)",
         }}
       />
 
@@ -307,7 +322,7 @@ export function HeroSection() {
         {/* Heading — fixed height stops typewriter from shifting elements below */}
         <div className="w-full min-h-[10rem] flex items-center justify-center mb-[1.4rem]">
           <h1
-            className="font-bold text-[#5f5f5f] leading-[1.18] tracking-[-0.025em] m-0"
+            className="font-bold text-white/85 leading-[1.18] tracking-[-0.025em] m-0"
             style={{ fontSize: "clamp(2.4rem, 5.5vw, 3.6rem)" }}
           >
             Un magasinage
@@ -319,16 +334,17 @@ export function HeroSection() {
           </h1>
         </div>
 
-        <p className="text-[1.15rem] leading-[1.25] font-semibold text-[#3d3d3d] max-w-[500px] m-0 mb-[1.8rem]">
-          Remplacez vos habitudes de magasinage fastidieuses par une expérience
-          fluide et agréable. En obtenant les meilleures offres.
+        <p className="text-[0.95rem] leading-[1.25]  text-white/85 max-w-[500px] m-0 mb-[1.8rem]">
+          Obtenez les meilleures offres sur <strong>épicerie</strong>,{" "}
+          <strong>les pièces automobiles</strong>, les{" "}
+          <strong>matériaux de construction</strong> et plus encore.
         </p>
 
         {/* ── Search form ── */}
         <div className="w-full max-w-[480px] mb-[1.4rem]">
           <div className="relative">
             <div
-              className={`hero-search-inner flex items-center gap-2.5 py-2 pr-2 pl-[14px] rounded-[14px] border border-[rgba(56,189,248,0.2)] bg-[rgba(10,16,26,0.7)] backdrop-blur-md transition-colors duration-200 ${
+              className={`hero-search-inner flex items-center gap-2.5 py-2 pr-2 pl-[14px] rounded-[8px] border border-[rgba(56,189,248,0.2)] bg-[rgba(10,16,26,0.7)] backdrop-blur-md transition-colors duration-200 ${
                 !isPaid ? "opacity-60 select-none" : ""
               }`}
             >
@@ -375,7 +391,7 @@ export function HeroSection() {
 
           {/* Inline lock message */}
           {showLockMsg && !isPaid && (
-            <div className="mt-2 flex items-center gap-2 rounded-[10px] border border-[rgba(29, 29, 29, 0.3)] bg-[rgba(36, 165, 251, 0.56)] px-4 py-2.5 text-[12.5px] text-[#000000]">
+            <div className="mt-2 flex items-center gap-2 rounded-[8px] bg-blue-100/60 border border-[rgba(29, 29, 29, 0.3)] px-4 py-2.5 text-[12.5px] text-[#000000]">
               <span>🔒</span>
               <span>
                 Cette fonctionnalité est réservée aux membres payants.{" "}
@@ -400,7 +416,7 @@ export function HeroSection() {
         </div>
 
         {/* Prompt chips */}
-        <div className="w-full max-w-[480px] border border-[rgba(56,189,248,0.18)] rounded-[16px] bg-[rgba(10,16,26,0.7)] backdrop-blur-md overflow-hidden">
+        <div className="w-full max-w-[480px] border border-[rgba(56,189,248,0.18)] rounded-[8px] bg-[rgba(10,16,26,0.7)] backdrop-blur-md overflow-hidden">
           <div className="flex items-center gap-1.5 px-4 py-[10px] text-[11px] text-white border-b border-[rgba(56,189,248,0.1)] tracking-[0.05em] uppercase">
             <Sparkles size={12} />
             Que cherchez-vous&nbsp;?
