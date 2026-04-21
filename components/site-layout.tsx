@@ -48,7 +48,7 @@ export function SiteHeader() {
             height={27}
             className="rounded-sm"
           />
-          <span className="text-[13.5px] font-bold italic tracking-tight text-slate-700">
+          <span className="text-[14.5px] italic font-bold tracking-tight text-slate-800">
             BanditPrice
           </span>
         </Link>
@@ -183,10 +183,14 @@ export function SiteHeader() {
 
               {/* Logo in sheet */}
               <div className="flex items-center gap-2 px-2 pb-6 pt-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500">
-                  <Ship className="h-4 w-4 text-white" />
-                </div>
-                <span className="text-[15px] font-bold tracking-tight text-slate-900">
+                <Image
+                  src="/banditprice.png"
+                  alt="BanditPrice Logo"
+                  width={25}
+                  height={25}
+                  className="rounded-sm"
+                />
+                <span className="text-[15px] font-bold italic tracking-tight text-slate-900">
                   BanditPrice
                 </span>
               </div>
@@ -233,9 +237,9 @@ export function SiteHeader() {
                   <LogOut className="h-4 w-4" /> Sign Out
                 </button>
               ) : (
-                <div className="mt-2 flex flex-col gap-2">
+                <div className="mt-2 flex items-center flex-col gap-2">
                   <Link href="/login" onClick={() => setOpen(false)}>
-                    <button className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-[14px] font-medium text-slate-700 transition-colors hover:bg-slate-100">
+                    <button className="w-full rounded-md border border-slate-800 px-4 py-2.5 text-[14px] font-medium text-slate-700 transition-colors hover:bg-slate-100">
                       Sign In
                     </button>
                   </Link>

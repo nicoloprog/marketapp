@@ -300,7 +300,7 @@ export function HeroSection() {
           className="absolute inset-0 min-h-full"
           style={{
             backgroundImage:
-              "radial-gradient(circle, rgba(0, 50, 120, 0.35) 1px, transparent 1px)",
+              "radial-gradient(circle, rgb(0, 50, 120) 1px, transparent 1px)",
             backgroundSize: "19px 19px",
             maskImage:
               "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
@@ -320,7 +320,7 @@ export function HeroSection() {
 
       <div className="relative max-w-[680px] mx-auto px-6 pt-20 pb-16 flex flex-col items-center text-center">
         {/* Heading — fixed height stops typewriter from shifting elements below */}
-        <div className="w-full min-h-[10rem] flex items-center justify-center mb-[1.4rem]">
+        <div className="w-full min-h-[10rem] flex items-center justify-center">
           <h1
             className="font-bold text-white/85 leading-[1.18] tracking-[-0.025em] m-0"
             style={{ fontSize: "clamp(2.4rem, 5.5vw, 3.6rem)" }}
@@ -335,9 +335,9 @@ export function HeroSection() {
         </div>
 
         <p className="text-[0.95rem] leading-[1.25]  text-white/85 max-w-[500px] m-0 mb-[1.8rem]">
-          Obtenez les meilleures offres sur <strong>épicerie</strong>,{" "}
-          <strong>les pièces automobiles</strong>, les{" "}
-          <strong>matériaux de construction</strong> et plus encore.
+          Obtenez les meilleures offres sur <strong>l'épicerie</strong>,
+          <strong>vêtements</strong>,<strong> pièces automobiles</strong>,
+          <strong> matériaux de construction</strong> et plus encore.
         </p>
 
         {/* ── Search form ── */}
