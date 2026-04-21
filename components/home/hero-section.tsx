@@ -300,7 +300,7 @@ export function HeroSection() {
           className="absolute inset-0 min-h-full"
           style={{
             backgroundImage:
-              "radial-gradient(circle, rgb(0, 50, 120) 1px, transparent 1px)",
+              "radial-gradient(circle, rgba(4, 108, 254, 0.19) 1px, transparent 2px)",
             backgroundSize: "19px 19px",
             maskImage:
               "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
@@ -311,7 +311,15 @@ export function HeroSection() {
       {/* Blue glow */}
       <div
         aria-hidden
-        className="absolute top-[60%] left-1/2 -translate-x-1/2 w-[1800px] h-[240px] rounded-[50%] pointer-events-none"
+        className="absolute top-[42%] sm:top-[55%]  left-1/2 -translate-x-1/2 w-[1800px] h-[240px] rounded-[50%] pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse, rgba(52, 148, 227, 0.34) 0%,  transparent 70%)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute top-[55%] sm:top-[55%] left-1/2 -translate-x-1/2 w-[1800px] h-[240px] rounded-[50%] pointer-events-none"
         style={{
           background:
             "radial-gradient(ellipse, rgba(52, 148, 227, 0.45) 0%,  transparent 70%)",
