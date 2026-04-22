@@ -47,7 +47,7 @@ export function WelcomeTrigger() {
 
     const timer = setTimeout(() => {
       toast({
-        title: "Installer BanditPrice",
+        title: "Installer Banditprice",
         description: (
           <div className="flex items-center gap-2 flex-1 overflow-hidden">
             <div className="relative flex-shrink-0">
@@ -64,7 +64,7 @@ export function WelcomeTrigger() {
 
             <div className="flex flex-col min-w-0">
               <span className="text-[15px] font-semibold text-white/95 leading-tight truncate">
-                BanditPrice
+                Banditprice
               </span>
               <span className="text-[12px] text-white/50 leading-tight truncate">
                 Les meilleures offres en un clic

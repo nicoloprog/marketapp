@@ -18,7 +18,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "BanditPrice",
+  title: "Banditprice",
   description:
     "Comparez les prix les moins chers sur des articles en magasin ou des pièces automobiles au Canada. Trouvez les meilleures offres en un clic.",
   manifest: "/manifest.webmanifest",

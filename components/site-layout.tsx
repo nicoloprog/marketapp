@@ -49,7 +49,7 @@ export function SiteHeader() {
             className="rounded-sm"
           />
           <span className="text-[14.5px] italic font-bold tracking-tight text-slate-800">
-            BanditPrice
+            Banditprice
           </span>
         </Link>
 
