@@ -25,16 +25,15 @@ export default function LoginPage() {
     setError("");
     setSubmitting(true);
 
-    const success = await login(email, password);
+    const result = await login(email, password);
 
-    if (success) {
+    if (result.success) {
       toast.success("Signed in successfully");
-      // Force a refresh so the middleware picks up the new cookie
+      router.replace(result.redirectTo ?? "/shop");
       router.refresh();
-      router.push("/");
     } else {
-      setError("Invalid email or password");
-      toast.error("Invalid email or password");
+      setError(result.message);
+      toast.error(result.message);
       setSubmitting(false);
     }
   };
@@ -48,14 +47,14 @@ export default function LoginPage() {
               <Wrench className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold text-foreground">
-              RemorquageKD
+              Banditprice
             </span>
           </Link>
           <h1 className="mt-6 text-2xl font-bold text-foreground">
-            Welcome back
+            Bon retour, bandit!
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Sign in to your account
+            Connecte-toi pour découvrir les meilleures offres en un clic.
           </p>
         </div>
 

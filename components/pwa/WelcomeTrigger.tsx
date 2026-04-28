@@ -46,7 +46,7 @@ export function WelcomeTrigger() {
     if (!installPrompt || hasShownInstallToast) return;
 
     const timer = setTimeout(() => {
-      toast({
+      const installToast = toast({
         title: "Installer Banditprice",
         description: (
           <div className="flex items-center gap-2 flex-1 overflow-hidden">
@@ -81,6 +81,7 @@ export function WelcomeTrigger() {
                 await installPrompt.prompt();
                 await installPrompt.userChoice;
                 setInstallPrompt(null);
+                installToast.dismiss();
               }
             }}
           >
@@ -118,7 +119,7 @@ export function WelcomeTrigger() {
     if (!isIos) return;
 
     const timer = setTimeout(() => {
-      toast({
+      const iosToast = toast({
         // Native iOS "Capsule" styling
         className:
           "group p-2.5 pr-4 bg-white/10 backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl flex items-center gap-3 max-w-[92vw] mx-auto mb-4",
@@ -166,7 +167,7 @@ export function WelcomeTrigger() {
 
             {/* Closing "X" or "Dismiss" - Faded state */}
             <button
-              onClick={() => toast.dismiss()}
+              onClick={() => iosToast.dismiss()}
               className="ml-2 p-1 rounded-full bg-white/5 border border-white/5 hover:border-white/20 transition-all"
             >
               <svg

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/store";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/card";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -36,6 +38,12 @@ export default function RegisterPage() {
       const result = await register(email, password, name, confirmPassword);
 
       setMessage({ text: result.message, success: result.success });
+
+      if (result.success && result.redirectTo) {
+        router.replace(result.redirectTo);
+        router.refresh();
+        return;
+      }
 
       // If email verification is needed, don't redirect — show the message
       // onAuthStateChange in store.tsx handles redirect automatically on full login

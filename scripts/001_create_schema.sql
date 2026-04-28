@@ -11,6 +11,9 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text not null default '',
   role public.user_role not null default 'CUSTOMER',
+  email text,
+  is_paid boolean not null default false,
+  updated_at timestamptz not null default now(),
   created_at timestamptz not null default now()
 );
 
@@ -27,13 +30,18 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, name, role)
+  insert into public.profiles (id, name, role, email)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'name', split_part(new.email, '@', 1)),
-    coalesce((new.raw_user_meta_data ->> 'role')::public.user_role, 'CUSTOMER')
+    coalesce((new.raw_user_meta_data ->> 'role')::public.user_role, 'CUSTOMER'),
+    new.email
   )
-  on conflict (id) do nothing;
+  on conflict (id) do update
+  set
+    name = excluded.name,
+    role = excluded.role,
+    email = excluded.email;
   return new;
 end;
 $$;

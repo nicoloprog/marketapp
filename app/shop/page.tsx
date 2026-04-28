@@ -356,6 +356,9 @@ export default function ShopPage() {
   const [acLoading, setAcLoading] = useState(false);
   const [partSearch, setPartSearch] = useState("");
 
+  // Input mode: "vin" or "manual"
+  const [inputMode, setInputMode] = useState<"vin" | "manual">("vin");
+
   // VIN state
   const [vin, setVin] = useState("");
   const [vehicle, setVehicle] = useState<VehicleData | null>(null);
@@ -506,110 +509,219 @@ export default function ShopPage() {
     }
   };
 
+  // ── Proceed with manual entry ──────────────────────────────────────────────
+  const proceedWithManualEntry = () => {
+    if (!make.trim() || !model.trim() || !year.trim()) {
+      toast.error("Veuillez remplir tous les champs (Marque, Modèle, Année)");
+      return;
+    }
+    // Create a vehicle object from manual input (no VIN)
+    setVehicle({
+      vin: "",
+      make: make.toUpperCase(),
+      model: model.toUpperCase(),
+      year,
+      manufacturer: "",
+      bodyClass: "",
+      engineModel: "",
+      fuelType: "",
+      trim: "",
+      source: "cache",
+    });
+    toast.success(`Véhicule sélectionné : ${make} ${model} ${year}`);
+  };
+
   const showPartSearch = vehicle || (make && model && year);
 
   return (
     <ProtectedRoute>
-      <div className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#e4e4e4] font-sans">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, rgba(90,90,90,0.98) 0.75px, transparent 1px)",
-            backgroundSize: "27px 27px",
-            maskImage:
-              "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
-          }}
-        />
+      <div className="relative min-h-screen flex flex-col justify-center overflow-hidden font-sans">
+        {/* Garage Background */}
+        <div className="fixed inset-0 bg-black/60 bg-[url('/garage-bg.png')] bg-cover bg-center bg-blend-overlay"></div>
 
         <SiteHeader />
 
-        <main className="flex-1 flex flex-col items-center py-32 px-4">
+        <main className="flex-1 flex flex-col items-center py-32 px-4 relative z-10">
           <div className="w-full max-w-4xl space-y-10">
             {/* ── Header: Minimalist & Tech-focused ── */}
             <div className="text-center space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs  tracking-widest uppercase">
+              {/* <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/30 border border-primary/20 text-white-300 text-xs tracking-widest uppercase">
                 <Zap className="h-3 w-3" /> Pièces de vehicules
-              </div>
-              <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl bg-gradient-to-b from-gray-400 to-gray-600 bg-clip-text text-transparent">
-                Identifiez. <span className="text-[#388bf8]">Trouvez.</span>{" "}
+              </div> */}
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl bg-gradient-to-b from-blue-300 via-blue-300 to-blue-200 bg-clip-text text-transparent drop-shadow-lg">
+                Identifiez. <span className="text-blue-400">Trouvez.</span>{" "}
                 Réparez.
               </h1>
             </div>
 
-            {/* ── Step 1: The VIN "Prompt" ── */}
-            <section className="relative max-w-2xl mx-auto w-full">
-              <div className="relative group bg-[rgba(10,16,26,0.7)] border border-white/10 rounded-2xl p-2 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] focus-within:ring-1 ring-primary/50 transition-all">
-                <div className="flex items-center px-4 py-2">
-                  <Car className="h-5 w-5 text-white mr-3" />
-                  <input
-                    type="text"
-                    placeholder="Entrez votre VIN ..."
-                    value={vin}
-                    onChange={(e) => setVin(e.target.value.toUpperCase())}
-                    maxLength={17}
-                    onKeyDown={(e) => e.key === "Enter" && decodeVIN()}
-                    className="w-full bg-transparent border-none focus:ring-0 text-md  placeholder:text-gray-100 py-3 tracking-widest"
-                  />
+            {/* ── Mode Selector ── */}
+            <div className="flex justify-center gap-2 max-w-2xl mx-auto w-full">
+              <button
+                onClick={() => {
+                  setInputMode("vin");
+                  setMake("");
+                  setModel("");
+                  setYear("");
+                  setVehicle(null);
+                  setVinSteps({ nhtsa: "idle", carquery: "idle" });
+                }}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+                  inputMode === "vin"
+                    ? "bg-blue-800 text-white shadow-lg"
+                    : "bg-slate-700/40 text-gray-300 border border-slate-600/50 hover:bg-slate-700/60"
+                }`}
+              >
+                Par VIN
+              </button>
+              <button
+                onClick={() => {
+                  setInputMode("manual");
+                  setVin("");
+                  setVehicle(null);
+                  setVinSteps({ nhtsa: "idle", carquery: "idle" });
+                }}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+                  inputMode === "manual"
+                    ? "bg-blue-800 text-white shadow-lg"
+                    : "bg-slate-700/90 text-gray-300 border border-slate-600/50 hover:bg-slate-700/60"
+                }`}
+              >
+                Marque / Modèle / Année
+              </button>
+            </div>
+
+            {/* ── Step 1: VIN Input ── */}
+            {inputMode === "vin" && (
+              <section className="relative max-w-2xl mx-auto w-full">
+                <div className="relative group bg-slate-900/80 border border-slate-700/50 rounded-2xl p-2 shadow-xl focus-within:ring-2 ring-blue-500/50 transition-all backdrop-blur-sm">
+                  <div className="flex items-center px-4 py-2 gap-1">
+                    <Car className="h-5 w-5 text-blue-600 mr-2" />
+                    <input
+                      type="text"
+                      placeholder="Entrez votre VIN ..."
+                      value={vin}
+                      onChange={(e) => setVin(e.target.value.toUpperCase())}
+                      maxLength={17}
+                      onKeyDown={(e) => e.key === "Enter" && decodeVIN()}
+                      className="w-full bg-transparent border-none focus:ring-0 text-md placeholder:text-slate-400 py-3 tracking-widest text-white"
+                    />
+                    <Button
+                      onClick={decodeVIN}
+                      disabled={
+                        vin.length !== 17 || vinSteps.nhtsa === "loading"
+                      }
+                      size="sm"
+                      className="rounded-xl bg-blue-800 text-slate-900 hover:bg-blue-600 font-semibold"
+                    >
+                      {vinSteps.nhtsa === "loading" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Identifier"
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Real-time Status Indicators */}
+                  <div className="flex gap-4 px-4 pb-2 border-t border-slate-700/30 pt-2 mt-2">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-1.5 w-1.5 rounded-full ${vinSteps.nhtsa === "done" ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-slate-700"}`}
+                      />
+                      <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
+                        NHTSA Database
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-1.5 w-1.5 rounded-full ${vinSteps.carquery === "done" ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-slate-700"}`}
+                      />
+                      <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
+                        Engine Specs
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* ── Step 1: Manual Entry ── */}
+            {inputMode === "manual" && (
+              <section className="relative max-w-2xl mx-auto w-full">
+                <div className="space-y-3">
+                  <div className="relative group bg-slate-900/80 border border-slate-700/50 rounded-2xl p-2 focus-within:ring-2 ring-blue-500/50 transition-all backdrop-blur-sm">
+                    <input
+                      type="text"
+                      placeholder="Marque (ex: Toyota, Ford)"
+                      value={make}
+                      onChange={(e) => setMake(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && proceedWithManualEntry()
+                      }
+                      className="w-full px-4 py-3 bg-transparent border-none focus:ring-0 text-md placeholder:text-slate-400 text-white"
+                    />
+                  </div>
+
+                  <div className="relative group bg-slate-900/80 border border-slate-700/50 rounded-2xl p-2 focus-within:ring-2 ring-blue-500/50 transition-all backdrop-blur-sm">
+                    <input
+                      type="text"
+                      placeholder="Modèle (ex: Camry, Mustang)"
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && proceedWithManualEntry()
+                      }
+                      className="w-full px-4 py-3 bg-transparent border-none focus:ring-0 text-md placeholder:text-slate-400 text-white"
+                    />
+                  </div>
+
+                  <div className="relative group bg-slate-900/80 border border-slate-700/50 rounded-2xl p-2 focus-within:ring-2 ring-blue-500/50 transition-all backdrop-blur-sm">
+                    <input
+                      type="number"
+                      placeholder="Année (ex: 2020)"
+                      value={year}
+                      onChange={(e) => setYear(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && proceedWithManualEntry()
+                      }
+                      className="w-full px-4 py-3 bg-transparent border-none focus:ring-0 text-md placeholder:text-slate-400 text-white"
+                      min={1900}
+                      max={new Date().getFullYear() + 1}
+                    />
+                  </div>
+
                   <Button
-                    onClick={decodeVIN}
-                    disabled={vin.length !== 17 || vinSteps.nhtsa === "loading"}
-                    size="sm"
-                    className="rounded-xl bg-white text-black hover:bg-slate-200"
+                    onClick={proceedWithManualEntry}
+                    disabled={!make.trim() || !model.trim() || !year.trim()}
+                    className="w-full rounded-xl bg-blue-500 text-slate-900 hover:bg-blue-400 font-semibold py-3"
                   >
-                    {vinSteps.nhtsa === "loading" ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Identifier"
-                    )}
+                    Continuer
                   </Button>
                 </div>
-
-                {/* Real-time Status Indicators */}
-                <div className="flex gap-4 px-4 pb-2 border-t border-white/5 pt-2 mt-2">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`h-1.5 w-1.5 rounded-full ${vinSteps.nhtsa === "done" ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-slate-700"}`}
-                    />
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
-                      NHTSA Database
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`h-1.5 w-1.5 rounded-full ${vinSteps.carquery === "done" ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-slate-700"}`}
-                    />
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
-                      Engine Specs
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </section>
+              </section>
+            )}
 
             {/* ── Step 2: Vehicle Insight & Part Search ── */}
             {showPartSearch && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
                 {/* Sleek Vehicle Status Card */}
                 {vehicle && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm">
                     <div className="space-y-1">
-                      <p className="text-[10px] uppercase text-slate-500 font-bold">
-                        Véhicule Détecté
+                      <p className="text-[10px] uppercase text-blue-400 font-bold">
+                        Véhicule Sélectionné
                       </p>
-                      <h3 className="text-gray-600 text-xl font-bold">
+                      <h3 className="text-blue-100 text-xl font-bold">
                         {vehicle.year} {vehicle.make}
                       </h3>
-                      <p className="text-gray-600 text-sm ">
+                      <p className="text-blue-50/70 text-sm">
                         {vehicle.model} {vehicle.trim}
                       </p>
                     </div>
-                    <div className="md:border-l border-white/10 md:pl-6 space-y-2">
-                      <p className="text-[10px] uppercase text-slate-500 font-bold">
+                    <div className="md:border-l border-slate-700/50 md:pl-6 space-y-2">
+                      <p className="text-[10px] uppercase text-blue-400 font-bold">
                         Moteur & Transmission
                       </p>
-                      <div className="text-xs text-gray-600 space-y-1">
+                      <div className="text-xs text-blue-50/70 space-y-1">
                         <p>Type: {vehicle.engineModel || "N/A"}</p>
                         <p>Carburant: {vehicle.fuelType || "N/A"}</p>
                         {vehicle.cq && <p>Traction: {vehicle.cq.drive}</p>}
@@ -620,9 +732,9 @@ export default function ShopPage() {
 
                 {/* Part Search "Prompt" */}
                 <div className="max-w-2xl mx-auto w-full space-y-4">
-                  <div className="relative group bg-primary/35 border border-primary/20 rounded-2xl p-2 focus-within:border-primary/50 transition-all">
+                  <div className="relative group bg-slate-900/80 border border-blue-500/30 rounded-2xl p-2 focus-within:border-blue-500/60 transition-all backdrop-blur-sm">
                     <div className="flex items-center px-4 py-1">
-                      <Search className="h-5 w-5 text-gray-600 mr-3" />
+                      <Search className="h-5 w-5 text-blue-400 mr-3" />
                       <input
                         type="text"
                         placeholder="Quelle pièce recherchez-vous ? (ex: Disques de frein)"
@@ -631,13 +743,13 @@ export default function ShopPage() {
                         onKeyDown={(e) =>
                           e.key === "Enter" && lookupParts(partSearch)
                         }
-                        className="w-full text-gray-600 bg-transparent border-none focus:ring-0 text-lg placeholder:text-gray-600 py-3"
+                        className="w-full text-blue-50 bg-transparent border-none focus:ring-0 text-lg placeholder:text-slate-400 py-3"
                       />
                       <Button
                         onClick={() => lookupParts(partSearch)}
                         disabled={acLoading || !partSearch.trim()}
                         variant="ghost"
-                        className="hover:bg-primary/20 text-gray-600"
+                        className="hover:bg-blue-500/20 text-blue-400"
                       >
                         {acLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -649,7 +761,7 @@ export default function ShopPage() {
                   </div>
 
                   {/* Quick Filters */}
-                  <div className="flex gap-2 justify-center">
+                  <div className="flex gap-2 justify-center flex-wrap">
                     {[
                       "Filtre à huile",
                       "Bougies",
@@ -662,7 +774,7 @@ export default function ShopPage() {
                           setPartSearch(tag);
                           lookupParts(tag);
                         }}
-                        className="text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-md border border-white/5 text-gray-600 hover:text-white hover:bg-white/5 transition-all"
+                        className="text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-md border border-slate-700/50 text-blue-400 hover:text-blue-300 hover:bg-slate-700/40 transition-all"
                       >
                         + {tag}
                       </button>

@@ -85,8 +85,16 @@ function NavItem({
 // ── Admin Layout ──────────────────────────────────────────────────────────────
 // NOTE: must NOT be async — useAuth() is a client-side hook
 export function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const pathname = usePathname();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#060c18] text-sm text-slate-400">
+        Checking permissions...
+      </div>
+    );
+  }
 
   if (!user || !isAdmin) return <AccessDenied />;
 
