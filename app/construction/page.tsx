@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { SiteHeader, SiteFooter } from "@/components/site-layout";
 import {
   Search,
@@ -144,7 +144,7 @@ function ResultCard({
       href={item.link ?? "#"}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative flex flex-col rounded-xl border bg-card overflow-hidden transition-all group ${
+      className={`relative flex flex-col rounded-xl border bg-gray-600 overflow-hidden transition-all group ${
         item.link
           ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
           : "cursor-default"
@@ -173,7 +173,7 @@ function ResultCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             {item.source === "shopping" && (
-              <span className="text-[10px] text-muted-foreground truncate">
+              <span className="text-[10px] text-amber-500 truncate">
                 {item.brandLabel}
               </span>
             )}
@@ -278,6 +278,7 @@ export default function ShopMaterialPage() {
   const [results, setResults] = useState<MaterialResult[]>([]);
   const [lastQuery, setLastQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   // Form state
   const [material, setMaterial] = useState("");
@@ -287,6 +288,15 @@ export default function ShopMaterialPage() {
   const [size, setSize] = useState("");
   const [sizeUnit, setSizeUnit] = useState("po");
 
+  const scrollToResults = useCallback(() => {
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
+  }, []);
+
   const searchMaterials = useCallback(async () => {
     if (!material.trim()) {
       toast.error("Veuillez entrer un matériau");
@@ -295,6 +305,7 @@ export default function ShopMaterialPage() {
 
     setLoading(true);
     setResults([]);
+    scrollToResults();
 
     try {
       const res = await fetch("/api/searchmaterial", {
@@ -344,16 +355,16 @@ export default function ShopMaterialPage() {
     } finally {
       setLoading(false);
     }
-  }, [material, category, quantity, unit, size, sizeUnit]);
+  }, [material, category, quantity, scrollToResults, size, sizeUnit, unit]);
 
   return (
     <ProtectedRoute>
-      <div className="relative min-h-screen flex flex-col justify-center overflow-hidden font-sans">
+      <div className="relative min-h-[110svh] flex flex-col justify-center overflow-x-hidden font-sans">
         {/* Garage Background */}
         <div className="fixed inset-0 bg-black/60 bg-[url('/construction.png')] bg-cover bg-center bg-blend-overlay"></div>
         <SiteHeader />
 
-        <main className="flex-1 flex flex-col items-center py-28 px-4">
+        <main className="relative z-10 flex-1 flex flex-col items-center py-28 px-4">
           <div className="w-full max-w-3xl space-y-12">
             {/* ── Header ── */}
             <div className="text-center space-y-3">
@@ -365,7 +376,7 @@ export default function ShopMaterialPage() {
 
             {/* ── AI Prompt Style Search ── */}
             <section className="relative">
-              <div className="relative group bg-[#555] border border-white/10 rounded-2xl p-2 shadow-2xl focus-within:border-primary/50 transition-all duration-300">
+              <div className="relative group bg-gray-600 border border-white/10 rounded-2xl p-2 shadow-2xl focus-within:border-primary/50 transition-all duration-300">
                 {/* Main Input */}
                 <div className="flex items-center px-4 pt-2">
                   <Search className="h-5 w-5 text-amber-500 mr-3" />
@@ -381,7 +392,7 @@ export default function ShopMaterialPage() {
 
                 {/* Secondary Controls (Pill Style) */}
                 <div className="flex flex-wrap items-center gap-2 p-2 pt-0 border-t border-white/5 mt-2">
-                  <select
+                  {/* <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     className="bg-[#222] border-none text-xs rounded px-3 py-1.5 text-slate-300 hover:bg-[#2a2a2a] cursor-pointer outline-none"
@@ -414,7 +425,7 @@ export default function ShopMaterialPage() {
                       onChange={(e) => setSize(e.target.value)}
                       className="bg-transparent border-none w-20 text-xs focus:ring-0 p-0"
                     />
-                  </div>
+                  </div> */}
 
                   <Button
                     onClick={searchMaterials}
@@ -433,7 +444,7 @@ export default function ShopMaterialPage() {
 
               {/* Quick Suggestions (Optional) */}
               <div className="mt-4 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                {["Contreplaqué 4x8", "Béton Mélange", "2x4 Lumber"].map(
+                {["Contreplaqué 4 x 8", "Béton Mélange", " bois 2 x 4 x 8"].map(
                   (suggestion) => (
                     <button
                       key={suggestion}
@@ -448,7 +459,7 @@ export default function ShopMaterialPage() {
             </section>
 
             {/* ── Results ── */}
-            <div className="pt-8">
+            <div ref={resultsRef} className="pt-8 pb-16 scroll-mt-28">
               {loading && (
                 <div className="flex flex-col items-center justify-center py-20 space-y-4">
                   <Loader2 className="h-10 w-10 animate-spin text-primary/50" />

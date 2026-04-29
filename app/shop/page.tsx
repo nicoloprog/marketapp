@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { SiteHeader, SiteFooter } from "@/components/site-layout";
 import {
   Search,
@@ -257,7 +257,7 @@ function PartCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             {part.source === "shopping" && (
-              <span className="text-[10px] text-muted-foreground truncate">
+              <span className="text-[10px] text-blue-400 truncate">
                 {part.brandLabel}
               </span>
             )}
@@ -355,6 +355,7 @@ export default function ShopPage() {
   const [allParts, setAllParts] = useState<AutoCarePart[]>([]);
   const [acLoading, setAcLoading] = useState(false);
   const [partSearch, setPartSearch] = useState("");
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   // Input mode: "vin" or "manual"
   const [inputMode, setInputMode] = useState<"vin" | "manual">("vin");
@@ -370,6 +371,15 @@ export default function ShopPage() {
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
 
+  const scrollToResults = useCallback(() => {
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
+  }, []);
+
   // ── Lookup parts via POST /api/search ──────────────────────────────────────
   const lookupParts = useCallback(
     async (term: string, m?: string, mo?: string, y?: string) => {
@@ -380,6 +390,7 @@ export default function ShopPage() {
 
       setAcLoading(true);
       setAllParts([]);
+      scrollToResults();
 
       try {
         const res = await fetch("/api/search", {
@@ -427,7 +438,7 @@ export default function ShopPage() {
         setAcLoading(false);
       }
     },
-    [make, model, year],
+    [make, model, scrollToResults, year],
   );
 
   // ── Enrich with vehicle specs ──────────────────────────────────────────────
@@ -501,7 +512,7 @@ export default function ShopPage() {
       setModel(rawModel);
       setYear(yearVal);
       setVinSteps({ nhtsa: "done", carquery: "idle" });
-      toast.success(`Identifié : ${rawMake} ${rawModel} ${yearVal}`);
+      toast.success(`Recherché : ${rawMake} ${rawModel} ${yearVal}`);
       await enrichVehicleData(vin);
     } catch {
       setVinSteps({ nhtsa: "error", carquery: "idle" });
@@ -535,7 +546,7 @@ export default function ShopPage() {
 
   return (
     <ProtectedRoute>
-      <div className="relative min-h-screen flex flex-col justify-center overflow-hidden font-sans">
+      <div className="relative min-h-[110svh] flex flex-col justify-center overflow-hidden font-sans">
         {/* Garage Background */}
         <div className="fixed inset-0 bg-black/60 bg-[url('/garage-bg.png')] bg-cover bg-center bg-blend-overlay"></div>
 
@@ -595,7 +606,7 @@ export default function ShopPage() {
               <section className="relative max-w-2xl mx-auto w-full">
                 <div className="relative group bg-slate-900/80 border border-slate-700/50 rounded-2xl p-2 shadow-xl focus-within:ring-2 ring-blue-500/50 transition-all backdrop-blur-sm">
                   <div className="flex items-center px-4 py-2 gap-1">
-                    <Car className="h-5 w-5 text-blue-600 mr-2" />
+                    <Car className="h-5 w-5 hidden md:none text-blue-600 mr-2" />
                     <input
                       type="text"
                       placeholder="Entrez votre VIN ..."
@@ -611,7 +622,7 @@ export default function ShopPage() {
                         vin.length !== 17 || vinSteps.nhtsa === "loading"
                       }
                       size="sm"
-                      className="rounded-xl bg-blue-800 text-slate-900 hover:bg-blue-600 font-semibold"
+                      className="rounded-lg bg-blue-500 text-slate-900 hover:bg-blue-500 font-semibold"
                     >
                       {vinSteps.nhtsa === "loading" ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -628,7 +639,7 @@ export default function ShopPage() {
                         className={`h-1.5 w-1.5 rounded-full ${vinSteps.nhtsa === "done" ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-slate-700"}`}
                       />
                       <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
-                        NHTSA Database
+                        VIN Decoded
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -636,7 +647,7 @@ export default function ShopPage() {
                         className={`h-1.5 w-1.5 rounded-full ${vinSteps.carquery === "done" ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-slate-700"}`}
                       />
                       <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
-                        Engine Specs
+                        Spécifications Moteur
                       </span>
                     </div>
                   </div>
@@ -694,7 +705,7 @@ export default function ShopPage() {
                     disabled={!make.trim() || !model.trim() || !year.trim()}
                     className="w-full rounded-xl bg-blue-500 text-slate-900 hover:bg-blue-400 font-semibold py-3"
                   >
-                    Continuer
+                    Identidier
                   </Button>
                 </div>
               </section>
@@ -783,7 +794,7 @@ export default function ShopPage() {
                 </div>
 
                 {/* Results Grid */}
-                <div className="pt-4">
+                <div ref={resultsRef} className="pt-4 scroll-mt-28">
                   <ResultsGrid parts={allParts} />
                 </div>
               </div>

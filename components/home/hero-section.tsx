@@ -279,11 +279,11 @@ export function HeroSection() {
   ];
 
   return (
-    <section className="relative min-h-[100svh] overflow-hidden">
+    <section className="relative justify-center min-h-[100svh] overflow-hidden">
       {/* Dot grid */}
       <div
         aria-hidden
-        className="absolute inset-0 z-[-1] overflow-hidden bg-[#020617]"
+        className="absolute  inset-0 z-[-1] overflow-hidden bg-[#020617]"
       >
         {/* Layer 1: The Deep Ocean Radial Gradient (Glow) */}
         <div
@@ -326,7 +326,7 @@ export function HeroSection() {
         }}
       />
 
-      <div className="relative max-w-[680px] mx-auto px-6 pt-20 pb-16 flex flex-col items-center text-center">
+      <div className="relative max-w-[680px] mx-auto min-h-[100svh] px-6 pt-12 md:pt-24 pb-10 md:pb-16 flex flex-col items-center justify-center text-center">
         {/* Heading — fixed height stops typewriter from shifting elements below */}
         <div className="w-full min-h-[10rem] flex items-center justify-center">
           <h1
@@ -386,6 +386,22 @@ export function HeroSection() {
                   "Rechercher"
                 )}
               </button>
+            </div>
+            {/* Quick Suggestions (Optional) */}
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+              {[
+                "Filet mignon de boeuf",
+                "Téléviseur intelligent",
+                "Chaise flottante",
+              ].map((suggestion) => (
+                <button
+                  key={suggestion}
+                  onClick={() => setPartSearch(suggestion)}
+                  className="text-xs text-gray-300 bg-gray-700/30 border border-white/5 px-3 py-1 rounded-full hover:bg-white/10 transition-colors whitespace-nowrap"
+                >
+                  {suggestion}
+                </button>
+              ))}
             </div>
 
             {/* Invisible click-catcher for non-paid users */}
