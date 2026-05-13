@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/api/rate-limit";
 
 // Force Canadian localization on any leftover Google Shopping URLs
 function localizeGoogleLink(url: string | null): string | null {
@@ -9,27 +10,47 @@ function localizeGoogleLink(url: string | null): string | null {
   return url;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const rateLimited = enforceRateLimit(req, "search", 4, 60_000);
+  if (rateLimited) return rateLimited;
+
   const { year, make, model, partName } = await req.json();
   const q = `${make} ${model} ${year} ${partName}`;
-  const apiKey = process.env.SERPAPI_API_KEY!;
   const enc = encodeURIComponent(q);
 
-  const amazonUrl = `https://serpapi.com/search.json?engine=amazon&k=${enc}&amazon_domain=amazon.ca&api_key=${apiKey}`;
-  const shoppingUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${enc}&location=Montreal%2C+Quebec%2C+Canada&google_domain=google.ca&gl=ca&hl=fr&api_key=${apiKey}`;
+  // 2 API keys
+  const apiKeys = [
+    process.env.SERPAPI_API_KEY!,
+    process.env.SERPAPI_API_KEY_2!,
+  ];
+
+  let amazonData = null;
+  let shoppingData = null;
 
   try {
-    const [amazonRes, shoppingRes] = await Promise.all([
-      fetch(amazonUrl),
-      fetch(shoppingUrl),
-    ]);
+    // Try each API key until one works
+    for (const apiKey of apiKeys) {
+      const amazonUrl = `https://serpapi.com/search.json?engine=amazon&k=${enc}&amazon_domain=amazon.ca&api_key=${apiKey}`;
 
-    const [amazonData, shoppingData] = await Promise.all([
-      amazonRes.json(),
-      shoppingRes.json(),
-    ]);
+      const shoppingUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${enc}&location=Montreal%2C+Quebec%2C+Canada&google_domain=google.ca&gl=ca&hl=fr&api_key=${apiKey}`;
 
-    const amazon = (amazonData.organic_results || []).map((item: any) => ({
+      const [amazonRes, shoppingRes] = await Promise.all([
+        fetch(amazonUrl),
+        fetch(shoppingUrl),
+      ]);
+
+      // If key works, use results and stop loop
+      if (amazonRes.ok && shoppingRes.ok) {
+        [amazonData, shoppingData] = await Promise.all([
+          amazonRes.json(),
+          shoppingRes.json(),
+        ]);
+
+        break;
+      }
+    }
+
+    const amazon = (amazonData?.organic_results || []).map((item: any) => ({
       partTerminologyName: item.title,
       brandLabel: item.brand || "Amazon",
       partNumber: item.asin || "N/A",
@@ -45,17 +66,19 @@ export async function POST(req: Request) {
       source: "amazon" as const,
     }));
 
-    const shopping = (shoppingData.shopping_results || []).map((item: any) => ({
-      partTerminologyName: item.title,
-      brandLabel: item.source || "Google Shopping",
-      partNumber: item.product_id || "N/A",
-      description: item.title,
-      price: item.extracted_price ?? item.price ?? null,
-      // product_link is the direct retailer URL — prefer it over Google's redirect
-      link: item.product_link || localizeGoogleLink(item.link),
-      thumbnail: item.thumbnail || null,
-      source: "shopping" as const,
-    }));
+    const shopping = (shoppingData?.shopping_results || []).map(
+      (item: any) => ({
+        partTerminologyName: item.title,
+        brandLabel: item.source || "Google Shopping",
+        partNumber: item.product_id || "N/A",
+        description: item.title,
+        price: item.extracted_price ?? item.price ?? null,
+        // product_link is the direct retailer URL — prefer it over Google's redirect
+        link: item.product_link || localizeGoogleLink(item.link),
+        thumbnail: item.thumbnail || null,
+        source: "shopping" as const,
+      }),
+    );
 
     return NextResponse.json({ amazon, shopping });
   } catch (error) {

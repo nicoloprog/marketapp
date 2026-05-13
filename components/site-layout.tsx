@@ -40,7 +40,7 @@ export function SiteHeader() {
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4">
       <div className="pointer-events-auto inline-flex w-full max-w-3xl items-center gap-1 rounded-full border border-slate-900/[.13] bg-white/70 px-3.5 py-1.5 shadow-[0_4px_20px_rgba(30,41,59,0.09),0_1px_3px_rgba(30,41,59,0.06)] backdrop-blur-xl">
         {/* Logo */}
-        <Link href="/" className="mr-2 flex shrink-0 items-center gap-2">
+        <Link href="/" className="mr-2 flex shrink-0 items-center gap-1">
           <Image
             src="/banditprice.png"
             alt="BanditPrice Logo"
@@ -48,7 +48,7 @@ export function SiteHeader() {
             height={27}
             className="rounded-sm"
           />
-          <span className="text-[14.5px] italic font-bold tracking-tight text-slate-800">
+          <span className="font-roboto text-[14.5px] italic font-black tracking-tighter text-slate-800">
             Banditprice
           </span>
         </Link>

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { enforceRateLimit } from "@/lib/api/rate-limit";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 export async function GET(req: NextRequest) {
+  const rateLimited = enforceRateLimit(req, "nhtsa-parts", 4, 60_000);
+  if (rateLimited) return rateLimited;
+
   const { searchParams } = new URL(req.url);
 
   const vin = searchParams.get("vin");
@@ -15,12 +19,10 @@ export async function GET(req: NextRequest) {
   let year = searchParams.get("year");
 
   try {
-    // ===============================
-    // 1️⃣ If VIN provided → Decode
-    // ===============================
     if (vin) {
       const decodeRes = await fetch(
         `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${vin}?format=json`,
+        { cache: "no-store" },
       );
 
       if (!decodeRes.ok) {
@@ -45,13 +47,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Normalize casing
     const normalizedMake = make.toUpperCase();
     const normalizedModel = model.toUpperCase();
 
-    // ===============================
-    // 2️⃣ Query Your DB (case insensitive)
-    // ===============================
     const { data: dbData, error } = await supabase
       .from("product_compatibility")
       .select(
@@ -76,36 +74,31 @@ export async function GET(req: NextRequest) {
       .ilike("vehicles.model", normalizedModel)
       .eq("vehicles.year", year);
 
-    if (error) throw error;
+    if (error) {
+      console.error("NHTSA parts query failed:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
-    const storeProducts = dbData?.map((item) => item.products) ?? [];
+    const storeProducts = dbData?.map((item: any) => item.products) ?? [];
 
-    // ===============================
-    // 3️⃣ Call NHTSA GetParts (proper manufacturer param)
-    // ===============================
-    const params = new URLSearchParams({
+    const partsParams = new URLSearchParams({
       type: "565",
       fromDate: "1/1/2015",
-      toDate: "12/31/2025",
+      toDate: "5/5/2025",
       format: "json",
       page: "1",
       manufacturer: normalizedMake,
     });
 
-    const nhtsaUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/GetParts?type=565&fromDate=1/1/2015&toDate=5/5/2025&format=xml&page=1&manufacturer=${params.toString()}`;
-
-    const partsRes = await fetch(nhtsaUrl);
+    const nhtsaUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/GetParts?${partsParams.toString()}`;
+    const partsRes = await fetch(nhtsaUrl, { cache: "no-store" });
 
     let nhtsaParts: any[] = [];
-
     if (partsRes.ok) {
       const partsData = await partsRes.json();
       nhtsaParts = partsData.Results ?? [];
     }
 
-    // ===============================
-    // 4️⃣ Return Unified Response
-    // ===============================
     return NextResponse.json({
       vehicle: { make: normalizedMake, model: normalizedModel, year },
       storeInventory: storeProducts,

@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/api/rate-limit";
 
 // Force Canadian localization on any leftover Google Shopping URLs
 function localizeGoogleLink(url: string | null): string | null {
@@ -25,7 +26,10 @@ function getPrice(value: any): number | null {
   return null;
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  const rateLimited = enforceRateLimit(req, "searcharticles", 4, 60_000);
+  if (rateLimited) return rateLimited;
+
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q");
 

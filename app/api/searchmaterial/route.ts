@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/api/rate-limit";
 
 function localizeGoogleLink(url: string | null): string | null {
   if (!url) return null;
@@ -36,7 +37,10 @@ function formatSize(size: string, sizeUnit: string): string {
   return `${trimmed} ${sizeUnit}`;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const rateLimited = enforceRateLimit(req, "searchmaterial", 4, 60_000);
+  if (rateLimited) return rateLimited;
+
   const { material, category, quantity, unit, size, sizeUnit } =
     await req.json();
 

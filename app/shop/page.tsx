@@ -45,10 +45,16 @@ interface CQData {
   fuel: string;
   drive: string;
   transmission: string;
+  transmissionspeed: string;
+  tpms: string;
+  wheelbase: string;
   weight: string;
 }
 
 interface VehicleData {
+  tpms: string;
+  displacement: string;
+  wheelbase: string;
   vin: string;
   make: string;
   model: string;
@@ -176,11 +182,15 @@ function VehicleCard({ v }: { v: VehicleData }) {
               </span>
               <span>
                 <strong className="text-foreground">Disp</strong>:{" "}
-                {v.cq.displacement ? `${v.cq.displacement} cc` : "—"}
+                {v.cq.displacement ? `${v.cq.displacement} L` : "—"}
               </span>
               <span>
-                <strong className="text-foreground">HP</strong>:{" "}
-                {v.cq.horsepower ? `${v.cq.horsepower} PS` : "—"}
+                <strong className="text-foreground">TPMS</strong>:{" "}
+                {v.cq.tpms || "—"}{" "}
+              </span>
+              <span>
+                <strong className="text-foreground">Wheelbase</strong>:{" "}
+                {v.cq.wheelbase ? `${v.cq.wheelbase}''` : "—"}
               </span>
               <span>
                 <strong className="text-foreground">Poids</strong>:{" "}
@@ -455,12 +465,15 @@ export default function ShopPage() {
         body: data.BodyClass || "",
         doors: data.Doors || "",
         cylinders: data.EngineCylinders || "",
-        displacement: data.DisplacementCC || "",
+        displacement: data.DisplacementL || "",
         horsepower: data.Horsepower || "",
         torque: "",
         fuel: data.FuelTypePrimary || "",
         drive: data.DriveType || "",
         transmission: data.TransmissionStyle || "",
+        transmissionspeed: data.TransmissionSpeeds || "",
+        tpms: data.TPMS || "",
+        wheelbase: data.WheelSizeFront || "",
         weight: data.GVWR || "",
       };
       setVehicle((prev) => (prev ? { ...prev, cq: specs } : null));
@@ -505,6 +518,9 @@ export default function ShopPage() {
         bodyClass: getVal("BodyClass"),
         engineModel: getVal("EngineModel"),
         fuelType: getVal("FuelTypePrimary"),
+        wheelbase: getVal("WheelSizeFront"),
+        tpms: getVal("TPMS"),
+        displacement: getVal("DisplacementL"),
         trim: getVal("Trim"),
         source: "live",
       });
@@ -535,9 +551,12 @@ export default function ShopPage() {
       manufacturer: "",
       bodyClass: "",
       engineModel: "",
+      wheelbase: "",
       fuelType: "",
       trim: "",
       source: "cache",
+      tpms: "",
+      displacement: "",
     });
     toast.success(`Véhicule sélectionné : ${make} ${model} ${year}`);
   };
@@ -716,7 +735,7 @@ export default function ShopPage() {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
                 {/* Sleek Vehicle Status Card */}
                 {vehicle && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm">
                     <div className="space-y-1">
                       <p className="text-[10px] uppercase text-blue-400 font-bold">
                         Véhicule Sélectionné
@@ -728,16 +747,51 @@ export default function ShopPage() {
                         {vehicle.model} {vehicle.trim}
                       </p>
                     </div>
-                    <div className="md:border-l border-slate-700/50 md:pl-6 space-y-2">
-                      <p className="text-[10px] uppercase text-blue-400 font-bold">
-                        Moteur & Transmission
-                      </p>
-                      <div className="text-xs text-blue-50/70 space-y-1">
-                        <p>Type: {vehicle.engineModel || "N/A"}</p>
-                        <p>Carburant: {vehicle.fuelType || "N/A"}</p>
-                        {vehicle.cq && <p>Traction: {vehicle.cq.drive}</p>}
+                    {(vehicle.engineModel ||
+                      vehicle.fuelType ||
+                      vehicle.displacement) && (
+                      <div className="md:border-l border-slate-700/50 md:pl-6 space-y-2">
+                        <p className="text-[10px] uppercase text-blue-400 font-bold">
+                          Moteur
+                        </p>
+                        <div className="text-xs text-blue-50/70 space-y-1">
+                          {vehicle.engineModel && <p>{vehicle.engineModel}</p>}
+                          {vehicle.fuelType && <p>{vehicle.fuelType}</p>}
+                          {vehicle.displacement && (
+                            <p>{vehicle.displacement} L</p>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
+                    {(vehicle.cq?.transmission ||
+                      vehicle.cq?.transmissionspeed ||
+                      vehicle.cq?.drive) && (
+                      <div className="md:border-l border-slate-700/50 md:pl-6 space-y-2">
+                        <p className="text-[10px] uppercase text-blue-400 font-bold">
+                          Transmission
+                        </p>
+                        <div className="text-xs text-blue-50/70 space-y-1">
+                          {vehicle.cq.transmission && (
+                            <p>{vehicle.cq.transmission}</p>
+                          )}
+                          {vehicle.cq.transmissionspeed && (
+                            <p>{vehicle.cq.transmissionspeed} rapports</p>
+                          )}
+                          {vehicle.cq.drive && <p>{vehicle.cq.drive}</p>}
+                        </div>
+                      </div>
+                    )}
+                    {(vehicle.wheelbase || vehicle.tpms) && (
+                      <div className="md:border-l border-slate-700/50 md:pl-6 space-y-2">
+                        <p className="text-[10px] uppercase text-blue-400 font-bold">
+                          Jantes et pneus
+                        </p>
+                        <div className="text-xs text-blue-50/70 space-y-1">
+                          {vehicle.wheelbase && <p>{vehicle.wheelbase} ""</p>}
+                          {vehicle.tpms && <p>{vehicle.tpms} ( Tpms )</p>}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
