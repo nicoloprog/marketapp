@@ -328,7 +328,7 @@ export function HeroSection() {
 
       <div className="relative max-w-[680px] mx-auto min-h-[100svh] px-6 pt-12 md:pt-24 pb-10 md:pb-16 flex flex-col items-center justify-center text-center">
         {/* Heading — fixed height stops typewriter from shifting elements below */}
-        <div className="w-full min-h-[10rem] flex items-center justify-center">
+        {/* <div className="w-full min-h-[10rem] flex items-center justify-center">
           <h1
             className="font-bold text-white/85 leading-[1.18] tracking-[-0.025em] m-0"
             style={{ fontSize: "clamp(2.4rem, 5.5vw, 3.6rem)" }}
@@ -340,9 +340,9 @@ export function HeroSection() {
               <span className="hero-cursor inline-block w-0.5 h-[1em] bg-[#38bdf8] ml-0.5 rounded-[1px]" />
             </span>
           </h1>
-        </div>
+        </div> */}
 
-        <p className="text-[0.95rem] leading-[1.25]  text-white/85 max-w-[500px] m-0 mb-[1.8rem]">
+        <p className="text-[1.25rem] leading-[1.25]  text-white/85 max-w-[500px] m-0 mb-[1.8rem]">
           Obtenez les meilleures offres sur <strong>l'épicerie</strong>,
           <strong>vêtements</strong>,<strong> pièces automobiles</strong>,
           <strong> matériaux de construction</strong> et plus encore.
