@@ -88,5 +88,40 @@
   }
   body {
     @apply text-foreground;
+
+    .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(59, 130, 246, 0.35) transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: linear-gradient(
+        180deg,
+        rgba(37, 99, 235, 0.4),
+        rgba(96, 165, 250, 0.4)
+      );
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      transition: background 0.2s ease;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(
+        180deg,
+        rgba(37, 99, 235, 0.65),
+        rgba(96, 165, 250, 0.65)
+      );
+      background-clip: padding-box;
+      border: 2px solid transparent;
+    }
   }
 }

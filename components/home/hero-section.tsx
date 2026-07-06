@@ -10,6 +10,7 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  ExternalLink,
 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { formatPrice } from "@/lib/data";
@@ -67,23 +68,30 @@ function PartCard({
       href={part.link ?? "#"}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative flex flex-col rounded-xl border bg-card overflow-hidden transition-all group ${
+      className={`group relative flex flex-col overflow-hidden rounded-3xl border backdrop-blur-md transition-all duration-300 ${
+        isCheapest ? "border-[#61fa7d55]" : "border-[#38bdf81f] bg-[#0a101a99]"
+      } ${
         part.link
-          ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+          ? "hover:-translate-y-1.5 hover:border-[rgba(56,189,248,0.4)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.15)] cursor-pointer"
           : "cursor-default"
-      } ${isCheapest ? "ring-2 ring-green-500" : ""}`}
+      }`}
     >
+      {/* Best price ribbon */}
       {isCheapest && (
-        <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shadow">
-          Meilleur prix
+        <div className="absolute top-3 left-3 z-10 flex items-center gap-1 rounded-full bg-gradient-to-r from-[#4ade80]/60 to-[#4ade80]/50 pl-1.5 pr-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-black/70 shadow-[0_2px_10px_rgba(74,222,128,0.4)]">
+          <Sparkles size={12} strokeWidth={2.5} />
+          meilleur prix
         </div>
       )}
+
+      {/* Image */}
       {part.thumbnail && !imgError ? (
-        <div className="w-full h-40 bg-muted flex items-center justify-center overflow-hidden">
+        <div className="relative w-full h-44 overflow-hidden bg-[#0a0f18]">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f18] via-transparent to-transparent opacity-60 z-[1]" />
           <img
             src={part.thumbnail}
             alt={part.partTerminologyName}
-            className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-200"
+            className="w-full h-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-110"
             onError={() => setImgError(true)}
           />
         </div>
@@ -91,39 +99,65 @@ function PartCard({
         <ImagePlaceholder />
       )}
 
-      <div className="flex flex-col gap-2 p-4 flex-1 bg-blue-950">
+      {/* Content */}
+      <div className="flex flex-1 bg-gradient-to-b from-[#3a332f]/80 via-[#1c1816]/95 to-[#0f0d0d] backdrop-blur-2xl border border-white/[0.08] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5),_inset_0_1px_1px_rgba(255,255,255,0.1)] flex-col gap-3 p-5 rounded-b-3xl">
+        {/* Source / brand */}
         <div className="flex items-center gap-1.5 min-w-0">
           {part.source === "shopping" && (
-            <span className="text-[20px] text-blue-400 font-semibold truncate">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-white/60 truncate border border-[#2174e8bf] px-2 py-0.5">
               {part.brandLabel}
             </span>
           )}
           {part.source === "amazon" && (
-            <span className="text-[20px] font-semibold text-blue-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-[#38bdf8]/80">
               Amazon.ca
             </span>
           )}
         </div>
-        <h3 className="font-medium text-sm leading-snug line-clamp-2 flex-1">
+
+        {/* Title */}
+        <h3
+          className="
+    flex-1
+    line-clamp-2
+    text-[16.5px]
+    font-semibold
+    leading-snug
+    bg-gradient-to-b
+    from-white
+    via-[#f2f7ff]
+    to-[#bfd2ee]
+    bg-clip-text
+    text-transparent
+    drop-shadow-[0_1px_6px_ #ffffff1f]
+  "
+        >
           {part.partTerminologyName}
         </h3>
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
+
+        {/* Price row */}
+        <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/[0.06]">
           {part.price != null ? (
-            <div className="flex items-baseline gap-1">
+            <div className="flex items-baseline gap-1 ml-auto text-right">
               <span
-                className={`text-[25px] font-bold ${isCheapest ? "text-green-400" : "text-foreground"}`}
+                className={`text-[22px] font-bold tracking-tight ${
+                  isCheapest ? "text-[#4ade80]/80" : "text-[#e2ecfb]"
+                }`}
               >
                 {formatPrice(part.price)}
               </span>
-              <span className="text-[10px] text-muted-foreground font-medium">
-                CA$
-              </span>
+              <span className="text-[10px] text-gray-300 font-medium">CA$</span>
             </div>
           ) : (
-            <span className="text-xs text-muted-foreground italic">
+            <span className="text-xs text-[#6b7fa3] italic ml-auto">
               Voir le site
             </span>
           )}
+
+          <ExternalLink
+            size={14}
+            className="text-[#38bdf8] opacity-0 -translate-x-1 transition-[opacity,transform] duration-200 group-hover:opacity-100 group-hover:translate-x-0"
+          />
         </div>
       </div>
     </a>
@@ -283,192 +317,64 @@ export function HeroSection() {
       {/* Dot grid */}
       <div
         aria-hidden
-        className="absolute  inset-0 z-[-1] overflow-hidden bg-[#020617]"
+        className="absolute inset-0 z-[-1] overflow-hidden bg-[#02040a]" // Pure deep ocean abyss black
       >
-        {/* Layer 1: The Deep Ocean Radial Gradient (Glow) */}
+        {/* Layer 1: Subtle Deep Sea Trench Glow (Extremely dark blue gradient) */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 50% 40%, rgba(7, 89, 133, 0.25) 0%, rgba(2, 6, 23, 1) 80%)",
+              "linear-gradient(to bottom, #052e5c 5%,#031129 30%, #031129 75%, #052e5c 100%)",
           }}
         />
 
-        {/* Layer 3: Your Original Dots (Refined for Ocean theme) */}
+        {/* Layer 2: Gemini-style ambient waterline reflection at the very bottom */}
         <div
-          aria-hidden
-          className="absolute inset-0 min-h-full"
+          className="absolute inset-0"
           style={{
-            backgroundImage:
-              "radial-gradient(circle, rgba(4, 108, 254, 0.19) 1px, transparent 1px)",
-            backgroundSize: "19px 19px",
-            maskImage:
-              "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
+            background:
+              "radial-gradient(circle at 50% 120%, rgba(14, 165, 233, 0.25) 0%, rgba(3, 105, 161, 0.05) 50%, transparent 80%)",
           }}
         />
       </div>
-
-      {/* Blue glow */}
-      <div
-        aria-hidden
-        className="absolute top-[40%] sm:top-[55%]  left-1/2 -translate-x-1/2 w-[1800px] h-[240px] rounded-[50%] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse, rgba(52, 148, 227, 0.34) 0%,  transparent 70%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="absolute top-[55%] sm:top-[55%] left-1/2 -translate-x-1/2 w-[1800px] h-[240px] rounded-[50%] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse, rgba(52, 148, 227, 0.45) 0%,  transparent 70%)",
-        }}
-      />
-
-      <div className="relative max-w-[680px] mx-auto min-h-[100svh] px-6 pt-12 md:pt-24 pb-10 md:pb-16 flex flex-col items-center justify-center text-center">
-        {/* Heading — fixed height stops typewriter from shifting elements below */}
-        {/* <div className="w-full min-h-[10rem] flex items-center justify-center">
-          <h1
-            className="font-bold text-white/85 leading-[1.18] tracking-[-0.025em] m-0"
-            style={{ fontSize: "clamp(2.4rem, 5.5vw, 3.6rem)" }}
-          >
-            Un magasinage
-            <br />{" "}
-            <span className="inline-flex items-center gap-0.5 text-[#388bf8] italic whitespace-nowrap">
-              {displayed}
-              <span className="hero-cursor inline-block w-0.5 h-[1em] bg-[#38bdf8] ml-0.5 rounded-[1px]" />
-            </span>
-          </h1>
-        </div> */}
-
-        <p className="text-[1.25rem] leading-[1.25]  text-white/85 max-w-[500px] m-0 mb-[1.8rem]">
-          Obtenez les meilleures offres sur <strong>l'épicerie</strong>,
-          <strong>vêtements</strong>,<strong> pièces automobiles</strong>,
-          <strong> matériaux de construction</strong> et plus encore.
-        </p>
-
-        {/* ── Search form ── */}
-        <div className="w-full max-w-[480px] mb-[1.4rem]">
-          <div className="relative">
-            <div
-              className={`hero-search-inner flex items-center gap-2.5 py-2 pr-2 pl-[14px] rounded-[8px] border border-[rgba(56,189,248,0.2)] bg-[rgba(10,16,26,0.7)] backdrop-blur-md transition-colors duration-200 ${
-                !isPaid ? "opacity-60 select-none" : ""
-              }`}
-            >
-              <Search
-                size={15}
-                className="text-[#38bdf8] flex-shrink-0 opacity-60"
-              />
-              <input
-                type="text"
-                value={partSearch}
-                onChange={(e) => isPaid && setPartSearch(e.target.value)}
-                onKeyDown={(e) =>
-                  isPaid && e.key === "Enter" && lookupParts(partSearch)
-                }
-                onFocus={() => !isPaid && setShowLockMsg(true)}
-                placeholder="Nom du produit (ex. filtre à huile, téléphone…)"
-                autoComplete="off"
-                readOnly={!isPaid}
-                className="flex-1 bg-transparent border-0 outline-none text-[13.5px] text-[#c8dcf0] caret-[#38bdf8] min-w-0 placeholder:text-white font-sans"
-              />
-              <button
-                onClick={() =>
-                  isPaid ? lookupParts(partSearch) : setShowLockMsg(true)
-                }
-                disabled={isPaid && (acLoading || !partSearch.trim())}
-                className="flex-shrink-0 flex items-center justify-center min-w-24 px-4 py-[7px] rounded-[9px] border-0 bg-[#388bf8] text-white text-[0.85rem] font-semibold cursor-pointer hover:bg-[#2d7de0] disabled:opacity-35 disabled:cursor-default transition-[background,opacity] duration-150 tracking-[-0.01em] font-sans"
-              >
-                {acLoading ? (
-                  <Loader2 size={14} className="hero-spinner" />
-                ) : (
-                  "Rechercher"
-                )}
-              </button>
+      {!acLoading && allParts.length === 0 && (
+        <div className="relative z-10 max-w-[680px] mx-auto min-h-[100svh] px-6 pt-12 md:pt-24 pb-10 md:pb-16 flex flex-col items-center justify-center text-center transition-opacity duration-300">
+          <p className="text-[1.25rem] leading-[1.25] text-white/85 max-w-[500px] m-0 mb-[1.8rem]">
+            Obtenez les meilleures offres sur <strong>l'épicerie</strong>,
+            <strong>vêtements</strong>,<strong> pièces automobiles</strong>,
+            <strong> matériaux de construction</strong> et plus encore.
+          </p>
+          <div className="w-full max-w-[480px] border border-[rgba(56,189,248,0.18)] rounded-[8px] bg-[rgba(10,16,26,0.7)] backdrop-blur-md overflow-hidden">
+            <div className="flex items-center gap-1.5 px-4 py-[10px] text-[9px] text-white border-b border-[rgba(56,189,248,0.1)] tracking-[0.05em] uppercase">
+              <Sparkles size={11} />
+              Recherche avancée
             </div>
-            {/* Quick Suggestions (Optional) */}
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-              {[
-                "Filet mignon de boeuf",
-                "Téléviseur intelligent",
-                "Chaise flottante",
-              ].map((suggestion) => (
-                <button
-                  key={suggestion}
-                  onClick={() => setPartSearch(suggestion)}
-                  className="text-xs text-gray-300 bg-gray-700/30 border border-white/5 px-3 py-1 rounded-full hover:bg-white/10 transition-colors whitespace-nowrap"
+            <div className="flex flex-col p-2 gap-1">
+              {prompts.map(({ href, label, icon: Icon }) => (
+                <Link
+                  href={href}
+                  key={href}
+                  className="group flex items-center gap-2.5 px-[14px] py-[10px] rounded-[10px] border border-transparent bg-transparent text-white text-[14px] font-[450] no-underline hover:bg-[rgba(56,189,248,0.07)] hover:border-[rgba(56,189,248,0.2)] hover:text-[#c8dcf0] transition-[background,border-color,color] duration-150"
                 >
-                  {suggestion}
-                </button>
+                  <Icon
+                    size={14}
+                    className="text-[#388bf8] flex-shrink-0 opacity-75"
+                  />
+                  {label}
+                  <ArrowRight
+                    size={10}
+                    className="ml-auto opacity-0 text-[#38bdf8] -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-150"
+                  />
+                </Link>
               ))}
             </div>
-
-            {/* Invisible click-catcher for non-paid users */}
-            {!isPaid && (
-              <div
-                className="absolute inset-0 cursor-pointer rounded-[14px]"
-                onClick={() => setShowLockMsg(true)}
-              />
-            )}
-          </div>
-
-          {/* Inline lock message */}
-          {showLockMsg && !isPaid && (
-            <div className="mt-2 flex items-center gap-2 rounded-[8px] bg-blue-100/60 border border-[rgba(29, 29, 29, 0.3)] px-4 py-2.5 text-[12.5px] text-[#000000]">
-              <span>🔒</span>
-              <span>
-                Cette fonctionnalité est réservée aux membres payants.{" "}
-                <Link
-                  href="/register"
-                  className="underline font-semibold hover:text-yellow-300 transition-colors"
-                >
-                  Créer un compte
-                </Link>{" "}
-                ou{" "}
-                <Link
-                  href="/login"
-                  className="underline font-semibold hover:text-yellow-300 transition-colors"
-                >
-                  se connecter
-                </Link>
-                .
-              </span>
-              <span>🔒</span>
-            </div>
-          )}
-        </div>
-
-        {/* Prompt chips */}
-        <div className="w-full max-w-[480px] border border-[rgba(56,189,248,0.18)] rounded-[8px] bg-[rgba(10,16,26,0.7)] backdrop-blur-md overflow-hidden">
-          <div className="flex items-center gap-1.5 px-4 py-[10px] text-[11px] text-white border-b border-[rgba(56,189,248,0.1)] tracking-[0.05em] uppercase">
-            <Sparkles size={12} />
-            Que cherchez-vous&nbsp;?
-          </div>
-          <div className="flex flex-col p-2 gap-1">
-            {prompts.map(({ href, label, icon: Icon }) => (
-              <Link
-                href={href}
-                key={href}
-                className="group flex items-center gap-2.5 px-[14px] py-[10px] rounded-[10px] border border-transparent bg-transparent text-white text-[13.5px] font-[450] no-underline hover:bg-[rgba(56,189,248,0.07)] hover:border-[rgba(56,189,248,0.2)] hover:text-[#c8dcf0] transition-[background,border-color,color] duration-150"
-              >
-                <Icon
-                  size={14}
-                  className="text-[#388bf8] flex-shrink-0 opacity-75"
-                />
-                {label}
-                <ArrowRight
-                  size={12}
-                  className="ml-auto opacity-0 text-[#38bdf8] -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-150"
-                />
-              </Link>
-            ))}
           </div>
         </div>
-
-        {/* Results */}
+      )}
+      {/* ── Results panel — takes over the space once there's something to show ── */}
+      <div className="custom-scrollbar fixed inset-x-0 top-12 bottom-54 mx-auto w-full max-w-[98%] overflow-y-auto p-6 z-10">
         {(acLoading || allParts.length > 0) && (
-          <div className="w-full max-w-[900px] mt-10 text-left">
+          <div className="w-full max-w-[900px] mt-6 text-left mx-auto">
             {acLoading ? (
               <div className="flex items-center gap-2.5 text-[#6b7fa3] text-sm">
                 <Loader2 size={20} className="hero-spinner" />
@@ -480,7 +386,106 @@ export function HeroSection() {
           </div>
         )}
       </div>
+      {/* ── Search form ── */}
+      <div className="fixed bottom-28 left-1/2 -translate-x-1/2 w-full max-w-[90%] md:max-w-[680px] z-20">
+        <div className="relative">
+          <div
+            className={`group flex items-center gap-2.5 py-2 pr-3.5 pl-[14px] rounded-[50px] border border-[#2073e893] bg-[rgba(10,16,26,0.7)] backdrop-blur-md transition-colors duration-200 focus-within:border-[#2073e8] ${
+              !isPaid ? "opacity-60 select-none" : ""
+            }`}
+          >
+            <div className="relative flex-1 min-w-0">
+              <input
+                type="text"
+                value={partSearch}
+                onChange={(e) => isPaid && setPartSearch(e.target.value)}
+                onKeyDown={(e) =>
+                  isPaid && e.key === "Enter" && lookupParts(partSearch)
+                }
+                onFocus={() => !isPaid && setShowLockMsg(true)}
+                placeholder="Nom du produit (ex. téléphone…)"
+                autoComplete="off"
+                readOnly={!isPaid}
+                className="peer w-full bg-transparent border-0 pl-4 py-4 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent focus-visible:outline-none focus-visible:ring-0 text-[16.5px] text-[#c8dcf0] caret-[#38bdf8] min-w-0 placeholder:text-white/80 font-sans"
+              />
 
+              {/* Base underline */}
+              <div className="absolute bottom-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent via-[#2174e87a] to-transparent" />
+
+              {/* Focus underline */}
+              <div className="absolute bottom-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent via-[#2073e8] to-transparent scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 ease-out origin-center" />
+            </div>
+
+            <button
+              onClick={() =>
+                isPaid ? lookupParts(partSearch) : setShowLockMsg(true)
+              }
+              disabled={isPaid && (acLoading || !partSearch.trim())}
+              className="flex-shrink-0 flex items-center justify-center max-w-4 px-6 py-3.5 rounded-[50px] border-0 bg-[#388bf8] text-white text-[0.85rem] font-semibold cursor-pointer hover:bg-[#2d7de0] disabled:opacity-75 disabled:cursor-default transition-[background,opacity] duration-150 tracking-[-0.01em] font-sans"
+            >
+              {acLoading ? (
+                <Loader2 size={14} className="hero-spinner" />
+              ) : (
+                <Search size={20} className="text-white-90 flex-shrink-0" />
+              )}
+            </button>
+          </div>
+          {/* Quick Suggestions (Optional) */}
+          {/* <div className="mt-4 flex gap-2 overflow-x-auto pb-4 custom-scrollbar">
+            {[
+              "Téléphone intelligent",
+              "Filet mignon de boeuf",
+              "Chaise flottante",
+              "Télévision 4K",
+              "Casque de vélo",
+              "ballon de football",
+              "Parapluie pliable",
+              "Montre connectée",
+              "Sac à dos étanche",
+            ].map((suggestion) => (
+              <button
+                key={suggestion}
+                onClick={() => setPartSearch(suggestion)}
+                className="text-xs text-gray-300 bg-gray-700/30 border border-white/5 px-3 py-1 rounded-full hover:bg-white/10 transition-colors whitespace-nowrap"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div> */}
+
+          {/* Invisible click-catcher for non-paid users */}
+          {!isPaid && (
+            <div
+              className="absolute inset-0 cursor-pointer rounded-[14px]"
+              onClick={() => setShowLockMsg(true)}
+            />
+          )}
+        </div>
+        {/* Inline lock message */}
+        {showLockMsg && !isPaid && (
+          <div className="mt-2 flex items-center gap-2 rounded-[8px] bg-blue-100/60 border border-[rgba(29, 29, 29, 0.3)] px-4 py-2.5 text-[12.5px] text-[#000000]">
+            <span>🔒</span>
+            <span>
+              Cette fonctionnalité est réservée aux membres payants.{" "}
+              <Link
+                href="/register"
+                className="underline font-semibold hover:text-yellow-300 transition-colors"
+              >
+                Créer un compte
+              </Link>{" "}
+              ou{" "}
+              <Link
+                href="/login"
+                className="underline font-semibold hover:text-yellow-300 transition-colors"
+              >
+                se connecter
+              </Link>
+              .
+            </span>
+            <span>🔒</span>
+          </div>
+        )}
+      </div>{" "}
       {/* Bottom separator */}
       <div
         aria-hidden
@@ -490,7 +495,6 @@ export function HeroSection() {
             "linear-gradient(to right, transparent, rgba(56,189,248,0.2), transparent)",
         }}
       />
-
       {/* Minimal style block — only for what Tailwind cannot express */}
       <style>{`
         @keyframes blink  { 0%,100%{opacity:1} 50%{opacity:0} }
