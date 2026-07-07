@@ -431,7 +431,7 @@ export default function ShopMaterialPage() {
                     onClick={searchMaterials}
                     disabled={loading || !material.trim()}
                     size="sm"
-                    className="ml-auto rounded-xl bg-amber-500 hover:bg-amber-600 text-amber-900 px-6"
+                    className="ml-auto mt-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-amber-900 px-6"
                   >
                     {loading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
