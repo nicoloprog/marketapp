@@ -387,7 +387,7 @@ export function HeroSection() {
         )}
       </div>
       {/* ── Search form ── */}
-      <div className="fixed bottom-28 left-1/2 -translate-x-1/2 w-full max-w-[90%] md:max-w-[680px] z-20">
+      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 w-full max-w-[90%] md:max-w-[680px] z-20">
         <div className="relative">
           <div
             className={`group flex items-center gap-2.5 py-2 pr-3.5 pl-[14px] rounded-[50px] border border-[#2073e893] bg-[rgba(10,16,26,0.7)] backdrop-blur-md transition-colors duration-200 focus-within:border-[#2073e8] ${
