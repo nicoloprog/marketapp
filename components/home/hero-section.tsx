@@ -109,8 +109,8 @@ function PartCard({
             </span>
           )}
           {part.source === "amazon" && (
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-[#38bdf8]/80">
-              Amazon.ca
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-white/60 truncate border border-[#2174e8bf] px-2 py-0.5">
+              Amazon ca
             </span>
           )}
         </div>
@@ -372,7 +372,7 @@ export function HeroSection() {
         </div>
       )}
       {/* ── Results panel — takes over the space once there's something to show ── */}
-      <div className="custom-scrollbar fixed inset-x-0 top-12 bottom-54 mx-auto w-full max-w-[98%] overflow-y-auto p-6 z-10">
+      <div className="custom-scrollbar fixed inset-x-0 top-12 bottom-54 mx-auto w-full max-w-[98%] overflow-y-auto p-6 z-5">
         {(acLoading || allParts.length > 0) && (
           <div className="w-full max-w-[900px] mt-6 text-left mx-auto">
             {acLoading ? (

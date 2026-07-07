@@ -1,4 +1,4 @@
-import { SiteHeader, SiteFooter } from "@/components/site-layout";
+import { SiteHeader } from "@/components/site-layout";
 import { HeroSection } from "@/components/home/hero-section";
 import { StatsSection } from "@/components/home/stats-section";
 
@@ -13,7 +13,6 @@ export default function HomePage() {
         <FeaturedProducts />
         <CTASection /> */}
       </main>
-      <SiteFooter />
     </div>
   );
 }
