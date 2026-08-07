@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
@@ -9,7 +9,7 @@ import { SiteHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/store";
 
-export default function SubscriptionSuccessPage() {
+function SubscriptionSuccessPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
@@ -103,5 +103,13 @@ export default function SubscriptionSuccessPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function SubscriptionSuccessPage() {
+  return (
+    <Suspense fallback={null}>
+      <SubscriptionSuccessPageContent />
+    </Suspense>
   );
 }
