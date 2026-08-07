@@ -13,16 +13,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { RefreshCw, Search, Shield, Trash2, Users } from "lucide-react";
+import { BarChart3, RefreshCw, Search, Shield, Trash2, Users } from "lucide-react";
 
 type AdminUser = {
   id: string;
   name: string;
   role: string;
   isPaid: boolean;
+  subscriptionPlan: "free" | "beginner" | "standard" | "business" | "custom";
+  searchLimitOverride: number | null;
+  monthlySearchLimit: number;
+  monthlySearchUsed: number;
   updatedAt: string | null;
   email: string | null;
 };
+
+const planOptions = [
+  { value: "free", label: "Free", limit: 0 },
+  { value: "beginner", label: "Beginner", limit: 100 },
+  { value: "standard", label: "Standard", limit: 500 },
+  { value: "business", label: "Business", limit: 3000 },
+  { value: "custom", label: "Custom", limit: null },
+] as const;
+
+function getPlanLimit(plan: AdminUser["subscriptionPlan"], customLimit: number | null) {
+  if (plan === "custom") return Math.max(0, Math.floor(Number(customLimit || 0)));
+  return planOptions.find((entry) => entry.value === plan)?.limit ?? 0;
+}
 
 function formatDate(value: string | null) {
   if (!value) return "Unknown";
@@ -40,6 +57,7 @@ function shortId(value: string) {
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [draftNames, setDraftNames] = useState<Record<string, string>>({});
+  const [draftCustomLimits, setDraftCustomLimits] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -61,6 +79,14 @@ export default function AdminUsersPage() {
       setDraftNames(
         Object.fromEntries(
           nextUsers.map((user: AdminUser) => [user.id, user.name]),
+        ),
+      );
+      setDraftCustomLimits(
+        Object.fromEntries(
+          nextUsers.map((user: AdminUser) => [
+            user.id,
+            user.searchLimitOverride?.toString() ?? "",
+          ]),
         ),
       );
     } catch (error) {
@@ -91,9 +117,21 @@ export default function AdminUsersPage() {
     });
   }, [roleFilter, search, users]);
 
+  const totalMonthlySearches = useMemo(
+    () =>
+      users.reduce((total, user) => total + Number(user.monthlySearchUsed || 0), 0),
+    [users],
+  );
+
   const updateUser = async (
     userId: string,
-    updates: { name?: string; role?: string; isPaid?: boolean },
+    updates: {
+      name?: string;
+      role?: string;
+      isPaid?: boolean;
+      subscriptionPlan?: AdminUser["subscriptionPlan"];
+      searchLimitOverride?: number | null;
+    },
   ) => {
     const previousUsers = users;
     setSavingId(userId);
@@ -107,6 +145,25 @@ export default function AdminUsersPage() {
               ...(updates.role !== undefined ? { role: updates.role } : {}),
               ...(updates.isPaid !== undefined
                 ? { isPaid: updates.isPaid }
+                : {}),
+              ...(updates.subscriptionPlan !== undefined
+                ? {
+                    subscriptionPlan: updates.subscriptionPlan,
+                    monthlySearchLimit: getPlanLimit(
+                      updates.subscriptionPlan,
+                      updates.searchLimitOverride ?? user.searchLimitOverride,
+                    ),
+                    isPaid: updates.subscriptionPlan !== "free",
+                  }
+                : {}),
+              ...(updates.searchLimitOverride !== undefined
+                ? {
+                    searchLimitOverride: updates.searchLimitOverride,
+                    monthlySearchLimit: getPlanLimit(
+                      updates.subscriptionPlan ?? user.subscriptionPlan,
+                      updates.searchLimitOverride,
+                    ),
+                  }
                 : {}),
             }
           : user,
@@ -122,6 +179,8 @@ export default function AdminUsersPage() {
           name: updates.name,
           role: updates.role,
           isPaid: updates.isPaid,
+          subscriptionPlan: updates.subscriptionPlan,
+          searchLimitOverride: updates.searchLimitOverride,
         }),
       });
 
@@ -193,8 +252,8 @@ export default function AdminUsersPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white">Users</h1>
           <p className="mt-1 text-sm text-slate-400">
-            Securely manage names, roles, and paid access from the `profiles`
-            table.
+            Securely manage names, roles, subscription plans, and monthly search
+            limits from the profiles table.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -202,6 +261,12 @@ export default function AdminUsersPage() {
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-blue-400" />
               {users.length} profiles
+            </div>
+          </div>
+          <div className="rounded-2xl border border-white/[.07] bg-white/[.03] px-4 py-3 text-sm text-slate-300">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-emerald-400" />
+              {totalMonthlySearches} searches this month
             </div>
           </div>
           <Button
@@ -248,7 +313,8 @@ export default function AdminUsersPage() {
                 <th className="px-5 py-4">Email</th>
                 <th className="px-5 py-4">Updated</th>
                 <th className="px-5 py-4">Role</th>
-                <th className="px-5 py-4">Paid</th>
+                <th className="px-5 py-4">Plan</th>
+                <th className="px-5 py-4">Monthly searches</th>
                 <th className="px-5 py-4">Save</th>
                 <th className="px-5 py-4">Delete</th>
               </tr>
@@ -257,6 +323,14 @@ export default function AdminUsersPage() {
               {filteredUsers.map((user) => {
                 const isSaving = savingId === user.id;
                 const currentDraftName = draftNames[user.id] ?? user.name;
+                const currentDraftLimit =
+                  draftCustomLimits[user.id] ??
+                  user.searchLimitOverride?.toString() ??
+                  "";
+                const searchRemaining = Math.max(
+                  0,
+                  user.monthlySearchLimit - user.monthlySearchUsed,
+                );
 
                 return (
                   <tr
@@ -306,27 +380,65 @@ export default function AdminUsersPage() {
                       </Select>
                     </td>
                     <td className="px-5 py-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={isSaving}
-                        onClick={() =>
-                          setUsers((current) =>
-                            current.map((entry) =>
-                              entry.id === user.id
-                                ? { ...entry, isPaid: !entry.isPaid }
-                                : entry,
-                            ),
-                          )
-                        }
-                        className={
-                          user.isPaid
-                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
-                            : "border-white/[.08] bg-white/[.04] text-slate-200 hover:bg-white/[.08]"
-                        }
-                      >
-                        {user.isPaid ? "TRUE" : "FALSE"}
-                      </Button>
+                      <div className="space-y-2">
+                        <Select
+                          value={user.subscriptionPlan}
+                          onValueChange={(value: AdminUser["subscriptionPlan"]) =>
+                            setUsers((current) =>
+                              current.map((entry) =>
+                                entry.id === user.id
+                                  ? {
+                                      ...entry,
+                                      subscriptionPlan: value,
+                                      isPaid: value !== "free",
+                                      monthlySearchLimit: getPlanLimit(
+                                        value,
+                                        entry.searchLimitOverride,
+                                      ),
+                                    }
+                                  : entry,
+                              ),
+                            )
+                          }
+                          disabled={isSaving}
+                        >
+                          <SelectTrigger className="w-36 border-white/[.08] bg-white/[.04] text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {planOptions.map((plan) => (
+                              <SelectItem key={plan.value} value={plan.value}>
+                                {plan.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100000}
+                          value={currentDraftLimit}
+                          onChange={(event) =>
+                            setDraftCustomLimits((current) => ({
+                              ...current,
+                              [user.id]: event.target.value,
+                            }))
+                          }
+                          disabled={isSaving || user.subscriptionPlan !== "custom"}
+                          placeholder="Custom limit"
+                          className="w-36 border-white/[.08] bg-white/[.04] text-white disabled:opacity-40"
+                        />
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="space-y-1 text-sm">
+                        <p className="font-medium text-slate-200">
+                          {user.monthlySearchUsed} / {user.monthlySearchLimit}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {searchRemaining} remaining this month
+                        </p>
+                      </div>
                     </td>
                     <td className="px-5 py-4">
                       <Button
@@ -335,7 +447,11 @@ export default function AdminUsersPage() {
                           void updateUser(user.id, {
                             name: currentDraftName.trim() || "User",
                             role: user.role,
-                            isPaid: user.isPaid,
+                            subscriptionPlan: user.subscriptionPlan,
+                            searchLimitOverride:
+                              user.subscriptionPlan === "custom"
+                                ? Number(currentDraftLimit || 0)
+                                : null,
                           })
                         }
                         className="gap-2 bg-blue-600 text-white hover:bg-blue-500"
@@ -368,6 +484,14 @@ export default function AdminUsersPage() {
           {filteredUsers.map((user) => {
             const isSaving = savingId === user.id;
             const currentDraftName = draftNames[user.id] ?? user.name;
+            const currentDraftLimit =
+              draftCustomLimits[user.id] ??
+              user.searchLimitOverride?.toString() ??
+              "";
+            const searchRemaining = Math.max(
+              0,
+              user.monthlySearchLimit - user.monthlySearchUsed,
+            );
 
             return (
               <div
@@ -421,34 +545,72 @@ export default function AdminUsersPage() {
                       <SelectItem value="ADMIN">Admin</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={isSaving}
-                    onClick={() =>
+                  <Select
+                    value={user.subscriptionPlan}
+                    onValueChange={(value: AdminUser["subscriptionPlan"]) =>
                       setUsers((current) =>
                         current.map((entry) =>
                           entry.id === user.id
-                            ? { ...entry, isPaid: !entry.isPaid }
+                            ? {
+                                ...entry,
+                                subscriptionPlan: value,
+                                isPaid: value !== "free",
+                                monthlySearchLimit: getPlanLimit(
+                                  value,
+                                  entry.searchLimitOverride,
+                                ),
+                              }
                             : entry,
                         ),
                       )
                     }
-                    className={
-                      user.isPaid
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
-                        : "border-white/[.08] bg-white/[.04] text-slate-200 hover:bg-white/[.08]"
-                    }
+                    disabled={isSaving}
                   >
-                    Paid: {user.isPaid ? "TRUE" : "FALSE"}
-                  </Button>
+                    <SelectTrigger className="border-white/[.08] bg-white/[.04] text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {planOptions.map((plan) => (
+                        <SelectItem key={plan.value} value={plan.value}>
+                          {plan.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100000}
+                    value={currentDraftLimit}
+                    onChange={(event) =>
+                      setDraftCustomLimits((current) => ({
+                        ...current,
+                        [user.id]: event.target.value,
+                      }))
+                    }
+                    disabled={isSaving || user.subscriptionPlan !== "custom"}
+                    placeholder="Custom monthly search limit"
+                    className="border-white/[.08] bg-white/[.04] text-white disabled:opacity-40"
+                  />
+                  <div className="rounded-lg border border-white/[.07] bg-white/[.03] p-3 text-sm text-slate-300">
+                    <p className="font-medium text-slate-100">
+                      {user.monthlySearchUsed} / {user.monthlySearchLimit} searches
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {searchRemaining} remaining this month
+                    </p>
+                  </div>
                   <Button
                     disabled={isSaving}
                     onClick={() =>
                       void updateUser(user.id, {
                         name: currentDraftName.trim() || "User",
                         role: user.role,
-                        isPaid: user.isPaid,
+                        subscriptionPlan: user.subscriptionPlan,
+                        searchLimitOverride:
+                          user.subscriptionPlan === "custom"
+                            ? Number(currentDraftLimit || 0)
+                            : null,
                       })
                     }
                     className="w-full gap-2 bg-blue-600 text-white hover:bg-blue-500"

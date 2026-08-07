@@ -11,14 +11,14 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
       // Redirect anyone who isn't an admin to the shop
-      router.push("/shop");
+      router.push("/");
     }
   }, [user, isAdmin, loading, router]);
 
   if (loading || !isAdmin) {
     return (
       <div className="flex h-screen items-center justify-center">
-        Checking permissions...
+        Verification des permissions...
       </div>
     );
   }

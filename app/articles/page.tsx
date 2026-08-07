@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/data";
+import { parsePrice } from "@/lib/price";
 import { toast } from "sonner";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -34,7 +35,7 @@ function SourceBadge({ source }: { source: RetailerSource }) {
   if (source === "amazon") {
     return (
       <span className="inline-flex items-center gap-1 text-[20px] font-semibold text-blue-400">
-        Amazon.ca
+        Amazon
       </span>
     );
   }
@@ -81,7 +82,7 @@ function PartCard({
       rel="noopener noreferrer"
       className={`relative flex flex-col rounded-xl border bg-card overflow-hidden transition-all group ${
         part.link
-          ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+          ? "hover:-translate-y-0.5 hover:border-blue-400/40 cursor-pointer"
           : "cursor-default"
       } ${isCheapest ? "ring-2 ring-green-500 dark:ring-green-500" : ""}`}
     >
@@ -219,8 +220,10 @@ export default function ShopPage() {
       const res = await fetch(
         `/api/searcharticles?${new URLSearchParams({ q: term.trim() })}`,
       );
-      if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error || `Server returned ${res.status}`);
+      }
 
       const mapPart = (item: any, source: RetailerSource): AutoCarePart => ({
         partTerminologyName: item.partTerminologyName ?? "Sans titre",
@@ -229,7 +232,7 @@ export default function ShopPage() {
         description: item.description ?? "",
         price:
           typeof item.price === "string"
-            ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
+            ? (parsePrice(item.price) ?? undefined)
             : typeof item.price === "number"
               ? item.price
               : undefined,
@@ -249,7 +252,7 @@ export default function ShopPage() {
         toast.info("Aucun résultat trouvé pour cette recherche.");
     } catch (err: any) {
       console.error("Lookup error:", err);
-      toast.error("Échec de la recherche. Vérifiez la console.");
+      toast.error(err?.message || "Échec de la recherche. Vérifiez la console.");
     } finally {
       setAcLoading(false);
     }

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/data";
+import { parsePrice } from "@/lib/price";
 import { toast } from "sonner";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -73,7 +74,7 @@ function SourceBadge({ source }: { source: RetailerSource }) {
   if (source === "amazon") {
     return (
       <span className="inline-flex items-center gap-1 text-[10px] text-[#797a7a]">
-        Amazon.ca
+        Amazon
       </span>
     );
   }
@@ -240,7 +241,7 @@ function PartCard({
       rel="noopener noreferrer"
       className={`relative flex flex-col rounded-xl border bg-card overflow-hidden transition-all group ${
         part.link
-          ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+          ? "hover:-translate-y-0.5 hover:border-blue-400/40 cursor-pointer"
           : "cursor-default"
       } ${isCheapest ? "ring-2 ring-green-500 dark:ring-green-500" : ""}`}
     >
@@ -413,8 +414,10 @@ export default function ShopPage() {
             partName: term.trim(),
           }),
         });
-        if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          throw new Error(data?.error || `Server returned ${res.status}`);
+        }
 
         const mapPart = (item: any, source: RetailerSource): AutoCarePart => ({
           partTerminologyName:
@@ -424,7 +427,7 @@ export default function ShopPage() {
           description: item.description ?? item.title ?? "",
           price:
             typeof item.price === "string"
-              ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
+              ? (parsePrice(item.price) ?? undefined)
               : typeof item.price === "number"
                 ? item.price
                 : undefined,
@@ -443,7 +446,7 @@ export default function ShopPage() {
           toast.info("Aucun résultat trouvé pour cette recherche.");
       } catch (err: any) {
         console.error("Lookup error:", err);
-        toast.error("Échec de la recherche. Vérifiez la console.");
+        toast.error(err?.message || "Échec de la recherche. Vérifiez la console.");
       } finally {
         setAcLoading(false);
       }
@@ -452,86 +455,69 @@ export default function ShopPage() {
   );
 
   // ── Enrich with vehicle specs ──────────────────────────────────────────────
-  const enrichVehicleData = async (targetVin: string) => {
-    setVinSteps((prev) => ({ ...prev, carquery: "loading" }));
-    try {
-      const res = await fetch(`/api/vehicle-specs?vin=${targetVin}`);
-      if (!res.ok) throw new Error("Spec lookup failed");
-      const data = await res.json();
-      const specs: CQData = {
-        makeId: data.MakeID || "",
-        modelId: data.ModelID || "",
-        trimId: data.Trim || "",
-        body: data.BodyClass || "",
-        doors: data.Doors || "",
-        cylinders: data.EngineCylinders || "",
-        displacement: data.DisplacementL || "",
-        horsepower: data.Horsepower || "",
-        torque: "",
-        fuel: data.FuelTypePrimary || "",
-        drive: data.DriveType || "",
-        transmission: data.TransmissionStyle || "",
-        transmissionspeed: data.TransmissionSpeeds || "",
-        tpms: data.TPMS || "",
-        wheelbase: data.WheelSizeFront || "",
-        weight: data.GVWR || "",
-      };
-      setVehicle((prev) => (prev ? { ...prev, cq: specs } : null));
-      setVinSteps((prev) => ({ ...prev, carquery: "done" }));
-    } catch {
-      setVinSteps((prev) => ({ ...prev, carquery: "error" }));
-    }
-  };
-
+  const mapNhtsaSpecs = (data: any): CQData => ({
+    makeId: data.MakeID || "",
+    modelId: data.ModelID || "",
+    trimId: data.Trim || "",
+    body: data.BodyClass || "",
+    doors: data.Doors || "",
+    cylinders: data.EngineCylinders || "",
+    displacement: data.DisplacementL || "",
+    horsepower: data.Horsepower || "",
+    torque: "",
+    fuel: data.FuelTypePrimary || "",
+    drive: data.DriveType || "",
+    transmission: data.TransmissionStyle || "",
+    transmissionspeed: data.TransmissionSpeeds || "",
+    tpms: data.TPMS || "",
+    wheelbase: data.WheelSizeFront || "",
+    weight: data.GVWR || "",
+  });
   // ── Decode VIN ─────────────────────────────────────────────────────────────
   const decodeVIN = async () => {
     if (!vin || vin.length !== 17)
       return toast.error("Entrez un VIN valide (17 caractères)");
-    setVinSteps({ nhtsa: "loading", carquery: "idle" });
+    setVinSteps({ nhtsa: "loading", carquery: "loading" });
     try {
-      const res = await fetch(
-        `https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvaluesextended/${vin}?format=xml`,
-      );
-      const xmlText = await res.text();
-      const xmlDoc = new DOMParser().parseFromString(
-        xmlText,
-        "application/xml",
-      );
-      const getVal = (tag: string) =>
-        xmlDoc.getElementsByTagName(tag)[0]?.textContent || "";
+      const res = await fetch(`/api/vehicle-specs?vin=${vin}`);
+      if (!res.ok) throw new Error(`NHTSA lookup failed (${res.status})`);
 
-      const rawMake = getVal("Make");
-      const rawModel = getVal("Model").split(" ")[0].toUpperCase();
-      const yearVal = getVal("ModelYear");
+      const data = await res.json();
+      const rawMake = data.Make || "";
+      const rawModel = data.Model || "";
+      const yearVal = data.ModelYear || "";
 
-      if (!rawMake) {
-        setVinSteps({ nhtsa: "error", carquery: "idle" });
+      if (!rawMake || !rawModel || !yearVal) {
+        setVinSteps({ nhtsa: "error", carquery: "error" });
         return toast.error("VIN invalide");
       }
 
+      const normalizedMake = rawMake.toUpperCase();
+      const normalizedModel = rawModel.toUpperCase();
+
       setVehicle({
         vin,
-        make: rawMake.toUpperCase(),
-        model: rawModel,
+        make: normalizedMake,
+        model: normalizedModel,
         year: yearVal,
-        manufacturer: getVal("Manufacturer"),
-        bodyClass: getVal("BodyClass"),
-        engineModel: getVal("EngineModel"),
-        fuelType: getVal("FuelTypePrimary"),
-        wheelbase: getVal("WheelSizeFront"),
-        tpms: getVal("TPMS"),
-        displacement: getVal("DisplacementL"),
-        trim: getVal("Trim"),
+        manufacturer: data.Manufacturer || "",
+        bodyClass: data.BodyClass || "",
+        engineModel: data.EngineModel || "",
+        fuelType: data.FuelTypePrimary || "",
+        wheelbase: data.WheelSizeFront || "",
+        tpms: data.TPMS || "",
+        displacement: data.DisplacementL || "",
+        trim: data.Trim || "",
+        cq: mapNhtsaSpecs(data),
         source: "live",
       });
-      setMake(rawMake.toUpperCase());
-      setModel(rawModel);
+      setMake(normalizedMake);
+      setModel(normalizedModel);
       setYear(yearVal);
-      setVinSteps({ nhtsa: "done", carquery: "idle" });
+      setVinSteps({ nhtsa: "done", carquery: "done" });
       toast.success(`Recherché : ${rawMake} ${rawModel} ${yearVal}`);
-      await enrichVehicleData(vin);
     } catch {
-      setVinSteps({ nhtsa: "error", carquery: "idle" });
+      setVinSteps({ nhtsa: "error", carquery: "error" });
       toast.error("Échec du décodage VIN");
     }
   };

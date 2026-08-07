@@ -34,8 +34,8 @@ export async function proxy(request: NextRequest) {
   let role = "USER";
 
   if (user) {
-    // 1. Check Metadata
-    const metaRole = user?.app_metadata?.role || user?.user_metadata?.role;
+    // App metadata is server-controlled. User metadata must not grant roles.
+    const metaRole = user?.app_metadata?.role;
 
     if (metaRole) {
       role = String(metaRole).toUpperCase();
@@ -65,7 +65,6 @@ export async function proxy(request: NextRequest) {
 
   // 4. PROTECT THE ADMIN ROUTE
   if (pathname.startsWith("/admin")) {
-    const isDeveloper = user?.email === "doe@gmail.com";
     if (!user || role !== "ADMIN") {
       return NextResponse.redirect(new URL("/login", request.url));
     }

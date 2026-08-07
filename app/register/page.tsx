@@ -2,23 +2,23 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/store";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
+
+import { SsoButtonGroup } from "@/components/auth/sso-button-group";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { useAuth } from "@/lib/store";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [name, setName] = useState("");
   const [message, setMessage] = useState<{
     text: string;
@@ -26,15 +26,12 @@ export default function RegisterPage() {
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register } = useAuth();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     setIsSubmitting(true);
 
     try {
-      // ✅ Now passing all 4 arguments including confirmPassword
       const result = await register(email, password, name, confirmPassword);
 
       setMessage({ text: result.message, success: result.success });
@@ -42,11 +39,7 @@ export default function RegisterPage() {
       if (result.success && result.redirectTo) {
         router.replace(result.redirectTo);
         router.refresh();
-        return;
       }
-
-      // If email verification is needed, don't redirect — show the message
-      // onAuthStateChange in store.tsx handles redirect automatically on full login
     } catch (error) {
       console.error("Registration failed:", error);
       setMessage({ text: "An unexpected error occurred.", success: false });
@@ -56,84 +49,172 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/50 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Create Account</CardTitle>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {/* Feedback message */}
-            {message && (
-              <div
-                className={`text-sm px-3 py-2 rounded-md ${
-                  message.success
-                    ? "bg-green-50 text-green-700 border border-green-200"
-                    : "bg-red-50 text-red-700 border border-red-200"
-                }`}
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#081426] px-4 py-10">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.22),transparent_34%),linear-gradient(135deg,#081426_0%,#10244a_48%,#07111f_100%)]" />
+
+      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.08] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.36)] backdrop-blur-xl sm:p-7">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">
+            Créer un compte
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-slate-300">
+            Comparez les prix et découvrez les meilleures offres.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          {message ? (
+            <div
+              className={`rounded-lg px-3 py-2 text-sm font-medium ${
+                message.success
+                  ? "bg-emerald-400/15 text-emerald-50"
+                  : "bg-red-500/15 text-red-50"
+              }`}
+            >
+              {message.text}
+            </div>
+          ) : null}
+
+          <div className="space-y-2">
+            <label
+              htmlFor="name"
+              className="text-sm font-semibold text-slate-100"
+            >
+              Identifiant
+            </label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Nom d'utilisateur"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="h-11 rounded-lg border-white/10 bg-white/10 text-white placeholder:text-slate-400 focus-visible:ring-cyan-300/40"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="email"
+              className="text-sm font-semibold text-slate-100"
+            >
+              Courriel
+            </label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Entrez votre courriel"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="h-11 rounded-lg border-white/10 bg-white/10 text-white placeholder:text-slate-400 focus-visible:ring-cyan-300/40"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label
+                htmlFor="password"
+                className="text-sm font-semibold text-slate-100"
               >
-                {message.text}
+                Mot de passe
+              </label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Entrez votre mot de passe"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="h-11 rounded-lg border-white/10 bg-white/10 pr-11 text-white placeholder:text-slate-400 focus-visible:ring-cyan-300/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 transition hover:text-white"
+                  aria-label={
+                    showPassword
+                      ? "Masquer le mot de passe"
+                      : "Afficher le mot de passe"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
-            )}
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Full Name</label>
-              <Input
-                type="text"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
-                type="email"
-                placeholder="john@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <label
+                htmlFor="confirmPassword"
+                className="text-sm font-semibold text-slate-100"
+              >
+                Confirmation
+              </label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="h-11 rounded-lg border-white/10 bg-white/10 pr-11 text-white placeholder:text-slate-400 focus-visible:ring-cyan-300/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((value) => !value)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 transition hover:text-white"
+                  aria-label={
+                    showConfirmPassword
+                      ? "Masquer la confirmation"
+                      : "Afficher la confirmation"
+                  }
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Password</label>
-              <Input
-                type="password"
-                placeholder="Min 8 chars, uppercase, number, special"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            {/* ✅ New confirm password field */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Confirm Password</label>
-              <Input
-                type="password"
-                placeholder="Repeat your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Creating Account..." : "Sign Up"}
+          <div className="pt-2">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="h-11 w-full rounded-lg bg-blue-600 text-sm font-bold text-white hover:bg-blue-700"
+            >
+              {isSubmitting ? "Création..." : "Continuer"}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
-              Already have an account?{" "}
-              <Link href="/login" className="text-primary hover:underline">
-                Sign In
-              </Link>
-            </p>
-          </CardFooter>
+          </div>
         </form>
-      </Card>
+
+        <div className="my-5 flex items-center gap-3">
+          <div className="h-px flex-1 bg-white/15" />
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+            ou
+          </span>
+          <div className="h-px flex-1 bg-white/15" />
+        </div>
+
+        <SsoButtonGroup type="register" />
+
+        <p className="mt-5 text-center text-sm text-slate-300">
+          Déja un compte?{" "}
+          <Link
+            href="/login"
+            className="font-semibold text-blue-400 hover:underline"
+          >
+            Connexion
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

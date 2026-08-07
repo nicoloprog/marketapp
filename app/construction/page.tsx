@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/data";
+import { parsePrice } from "@/lib/price";
 import { toast } from "sonner";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -103,7 +104,7 @@ function SourceBadge({ source }: { source: RetailerSource }) {
   if (source === "amazon") {
     return (
       <span className="inline-flex items-center gap-1 text-[10px] text-[#797a7a]">
-        Amazon.ca
+        Amazon
       </span>
     );
   }
@@ -146,7 +147,7 @@ function ResultCard({
       rel="noopener noreferrer"
       className={`relative flex flex-col rounded-xl border bg-gray-600 overflow-hidden transition-all group ${
         item.link
-          ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+          ? "hover:-translate-y-0.5 hover:border-blue-400/40 cursor-pointer"
           : "cursor-default"
       } ${isCheapest ? "ring-2 ring-green-500 dark:ring-green-500" : ""}`}
     >
@@ -320,8 +321,10 @@ export default function ShopMaterialPage() {
           sizeUnit,
         }),
       });
-      if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error || `Server returned ${res.status}`);
+      }
 
       setLastQuery(data.query ?? material);
 
@@ -333,7 +336,7 @@ export default function ShopMaterialPage() {
         description: item.description ?? item.title ?? "",
         price:
           typeof item.price === "string"
-            ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
+            ? (parsePrice(item.price) ?? undefined)
             : typeof item.price === "number"
               ? item.price
               : undefined,
@@ -351,7 +354,7 @@ export default function ShopMaterialPage() {
       if (merged.length === 0) toast.info("Aucun résultat trouvé.");
     } catch (err: any) {
       console.error("Search error:", err);
-      toast.error("Échec de la recherche. Vérifiez la console.");
+      toast.error(err?.message || "Échec de la recherche. Vérifiez la console.");
     } finally {
       setLoading(false);
     }

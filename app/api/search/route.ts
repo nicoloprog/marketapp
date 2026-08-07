@@ -1,88 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { enforceRateLimit } from "@/lib/api/rate-limit";
-
-// Force Canadian localization on any leftover Google Shopping URLs
-function localizeGoogleLink(url: string | null): string | null {
-  if (!url) return null;
-  if (url.includes("google.com/shopping")) {
-    return url.includes("?") ? `${url}&gl=ca` : `${url}?gl=ca`;
-  }
-  return url;
-}
+import { searchScrapingdogProducts } from "@/lib/api/scrapingdog";
+import { getSearchRegionFromRequest } from "@/lib/api/search-region";
+import { enforceSubscriptionSearchLimit } from "@/lib/api/subscription-limits";
 
 export async function POST(req: NextRequest) {
   const rateLimited = enforceRateLimit(req, "search", 4, 60_000);
   if (rateLimited) return rateLimited;
 
+  const subscriptionLimited = await enforceSubscriptionSearchLimit("vehicle");
+  if (subscriptionLimited) return subscriptionLimited;
+
   const { year, make, model, partName } = await req.json();
   const q = `${make} ${model} ${year} ${partName}`;
-  const enc = encodeURIComponent(q);
-
-  // 2 API keys
-  const apiKeys = [
-    process.env.SERPAPI_API_KEY!,
-    process.env.SERPAPI_API_KEY_2!,
-  ];
-
-  let amazonData = null;
-  let shoppingData = null;
 
   try {
-    // Try each API key until one works
-    for (const apiKey of apiKeys) {
-      const amazonUrl = `https://serpapi.com/search.json?engine=amazon&k=${enc}&amazon_domain=amazon.ca&api_key=${apiKey}`;
-
-      const shoppingUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${enc}&location=Montreal%2C+Quebec%2C+Canada&google_domain=google.ca&gl=ca&hl=fr&api_key=${apiKey}`;
-
-      const [amazonRes, shoppingRes] = await Promise.all([
-        fetch(amazonUrl),
-        fetch(shoppingUrl),
-      ]);
-
-      // If key works, use results and stop loop
-      if (amazonRes.ok && shoppingRes.ok) {
-        [amazonData, shoppingData] = await Promise.all([
-          amazonRes.json(),
-          shoppingRes.json(),
-        ]);
-
-        break;
-      }
-    }
-
-    const amazon = (amazonData?.organic_results || []).map((item: any) => ({
-      partTerminologyName: item.title,
-      brandLabel: item.brand || "Amazon",
-      partNumber: item.asin || "N/A",
-      description: item.title,
-      price:
-        typeof item.price === "string"
-          ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
-          : (item.price?.extracted_value ?? item.price ?? null),
-      link: item.asin
-        ? `https://www.amazon.ca/dp/${item.asin}`
-        : item.link || null,
-      thumbnail: item.thumbnail || item.image || null,
-      source: "amazon" as const,
-    }));
-
-    const shopping = (shoppingData?.shopping_results || []).map(
-      (item: any) => ({
-        partTerminologyName: item.title,
-        brandLabel: item.source || "Google Shopping",
-        partNumber: item.product_id || "N/A",
-        description: item.title,
-        price: item.extracted_price ?? item.price ?? null,
-        // product_link is the direct retailer URL — prefer it over Google's redirect
-        link: item.product_link || localizeGoogleLink(item.link),
-        thumbnail: item.thumbnail || null,
-        source: "shopping" as const,
-      }),
-    );
-
+    const { amazon, shopping } = await searchScrapingdogProducts(q, {
+      region: getSearchRegionFromRequest(req),
+    });
     return NextResponse.json({ amazon, shopping });
   } catch (error) {
-    console.error("SerpApi Error:", error);
+    console.error("Scrapingdog Error:", error);
     return NextResponse.json({ amazon: [], shopping: [] }, { status: 500 });
   }
 }

@@ -22,6 +22,9 @@ create policy "Anyone can view profiles" on public.profiles for select using (tr
 create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
 create policy "Users can insert own profile" on public.profiles for insert with check (auth.uid() = id);
 
+revoke update on public.profiles from anon, authenticated;
+grant update (name) on public.profiles to authenticated;
+
 -- Auto-create profile on signup
 create or replace function public.handle_new_user()
 returns trigger
@@ -34,13 +37,12 @@ begin
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'name', split_part(new.email, '@', 1)),
-    coalesce((new.raw_user_meta_data ->> 'role')::public.user_role, 'CUSTOMER'),
+    'CUSTOMER',
     new.email
   )
   on conflict (id) do update
   set
     name = excluded.name,
-    role = excluded.role,
     email = excluded.email;
   return new;
 end;

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk, Montserrat } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { PwaRegister } from "@/components/pwa-register";
 import { WelcomeTrigger } from "@/components/pwa/WelcomeTrigger";
@@ -18,9 +18,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Banditprice",
+  title: "BanditPrice",
   description:
-    "Comparez les prix les moins chers sur des articles en magasin ou des pièces automobiles au Canada. Trouvez les meilleures offres en un clic.",
+    "Comparez les meilleurs prix sur les articles, les pieces automobiles et les materiaux. Trouvez les meilleures offres en un clic.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -46,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="fr" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body>
         <Providers>
           <PwaRegister />

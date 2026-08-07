@@ -15,11 +15,15 @@ interface UserProfile {
   name: string | null;
   role: string | null;
   is_paid: string | boolean | null;
+  subscription_plan?: string | null;
+  search_limit_override?: number | null;
 }
 
 interface CustomUser extends User {
   name?: string;
   role?: string;
+  subscriptionPlan?: string;
+  searchLimitOverride?: number | null;
   isAdmin: boolean;
   isPaid: boolean;
 }
@@ -43,6 +47,7 @@ interface AuthState {
     name: string,
     confirmPassword: string,
   ) => Promise<AuthResult>;
+  refreshUser: () => Promise<CustomUser | null>;
   logout: () => Promise<void>;
 }
 
@@ -104,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { data: fetchedProfile, error: profileError } = await supabase
         .from("profiles")
-        .select("name, role, is_paid")
+        .select("name, role, is_paid, subscription_plan, search_limit_override")
         .eq("id", authUser.id)
         .maybeSingle();
 
@@ -117,6 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: fetchedProfile.name ?? null,
             role: fetchedProfile.role ? String(fetchedProfile.role) : null,
             is_paid: fetchedProfile.is_paid ?? null,
+            subscription_plan: fetchedProfile.subscription_plan ?? null,
+            search_limit_override: fetchedProfile.search_limit_override ?? null,
           }
         : null;
 
@@ -125,6 +132,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...authUser,
         name: normalizedProfile?.name || authUser.user_metadata?.name || "User",
         role,
+        subscriptionPlan: normalizedProfile?.subscription_plan || "free",
+        searchLimitOverride: normalizedProfile?.search_limit_override ?? null,
         isAdmin: role === "ADMIN",
         isPaid: toBoolean(normalizedProfile?.is_paid),
       };
@@ -219,7 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return {
         success: true,
         message: "Logged in",
-        redirectTo: updatedUser.isAdmin ? "/admin" : "/shop",
+        redirectTo: updatedUser.isAdmin ? "/admin" : "/",
       };
     } catch {
       return { success: false, message: "Unable to sign in right now." };
@@ -235,10 +244,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     confirmPassword: string,
   ): Promise<AuthResult> => {
     const cleanEmail = email.trim().toLowerCase();
-    const cleanName = name.trim();
+    const cleanName = name.trim().slice(0, 120);
+
+    if (!cleanName) {
+      return { success: false, message: "Name is required." };
+    }
 
     if (password !== confirmPassword) {
       return { success: false, message: "Passwords do not match." };
+    }
+
+    if (password.length < 8) {
+      return {
+        success: false,
+        message: "Password must be at least 8 characters.",
+      };
     }
 
     setLoading(true);
@@ -247,14 +267,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
-        options: { data: { name: cleanName } },
+        options: {
+          data: { name: cleanName },
+          emailRedirectTo:
+            typeof window !== "undefined"
+              ? `${window.location.origin}/auth/callback?next=/`
+              : undefined,
+        },
       });
 
       if (error) {
         return { success: false, message: error.message };
       }
 
-      if (data.session) {
+      if (data.session && data.user) {
         await supabase.from("profiles").upsert(
           {
             id: data.user.id,
@@ -262,6 +288,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: cleanEmail,
             role: "USER",
             is_paid: false,
+            subscription_plan: "free",
+            search_limit_override: null,
           },
           { onConflict: "id" },
         );
@@ -271,7 +299,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return {
           success: true,
           message: "Account created successfully.",
-          redirectTo: updatedUser?.isAdmin ? "/admin" : "/shop",
+          redirectTo: updatedUser?.isAdmin ? "/admin" : "/",
         };
       }
 
@@ -305,6 +333,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin: user?.isAdmin ?? false,
         isPaid: user?.isPaid ?? false,
         loading,
+        refreshUser,
         login,
         register,
         logout,

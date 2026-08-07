@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { default as Link } from "next/link";
 import {
   ArrowRight,
   Sparkles,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { formatPrice } from "@/lib/data";
+import { parsePrice } from "@/lib/price";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/store";
 
@@ -72,7 +73,7 @@ function PartCard({
         isCheapest ? "border-[#61fa7d55]" : "border-[#38bdf81f] bg-[#0a101a99]"
       } ${
         part.link
-          ? "hover:-translate-y-1.5 hover:border-[rgba(56,189,248,0.4)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.15)] cursor-pointer"
+          ? "hover:-translate-y-1.5 hover:border-[rgba(56,189,248,0.4)] cursor-pointer"
           : "cursor-default"
       }`}
     >
@@ -100,43 +101,27 @@ function PartCard({
       )}
 
       {/* Content */}
-      <div className="flex flex-1 bg-gradient-to-b from-[#3a332f]/80 via-[#1c1816]/95 to-[#0f0d0d] backdrop-blur-2xl border border-white/[0.08] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5),_inset_0_1px_1px_rgba(255,255,255,0.1)] flex-col gap-3 p-5 rounded-b-3xl">
+      <div className="flex flex-1 flex-col gap-4 p-6 rounded-b-3xl bg-gradient-to-b from-slate-100/10 via-slate-100/10 via-white/20 to-white/10 backdrop-blur-xl">
         {/* Source / brand */}
         <div className="flex items-center gap-1.5 min-w-0">
           {part.source === "shopping" && (
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-white/60 truncate border border-[#2174e8bf] px-2 py-0.5">
+            <span className="rounded-full bg-gradient-to-t from-slate-100/30 to-white/60 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-slate-950">
               {part.brandLabel}
             </span>
           )}
           {part.source === "amazon" && (
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-white/60 truncate border border-[#2174e8bf] px-2 py-0.5">
-              Amazon ca
+            <span className="rounded-full bg-gradient-to-t from-slate-100/30 to-white/60 px-2.5 py-0.5 text-[9px] font-bold tracking-wide text-slate-950">
+              Amazon
             </span>
           )}
         </div>
 
         {/* Title */}
-        <h3
-          className="
-    flex-1
-    line-clamp-2
-    text-[16.5px]
-    font-semibold
-    leading-snug
-    bg-gradient-to-b
-    from-white
-    via-[#f2f7ff]
-    to-[#bfd2ee]
-    bg-clip-text
-    text-transparent
-    drop-shadow-[0_1px_6px_ #ffffff1f]
-  "
-        >
+        <h3 className="flex-1 line-clamp-2 text-[15px] font-bold leading-snug tracking-tight text-slate-200/90 hover:text-white transition-colors duration-200">
           {part.partTerminologyName}
         </h3>
-
         {/* Price row */}
-        <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between pt-3 border-t border-white/[0.08]">
           {part.price != null ? (
             <div className="flex items-baseline gap-1 ml-auto text-right">
               <span
@@ -146,7 +131,7 @@ function PartCard({
               >
                 {formatPrice(part.price)}
               </span>
-              <span className="text-[10px] text-gray-300 font-medium">CA$</span>
+              <span className="text-[10px] text-gray-300 font-bold">$</span>
             </div>
           ) : (
             <span className="text-xs text-[#6b7fa3] italic ml-auto">
@@ -268,8 +253,28 @@ export function HeroSection() {
       const res = await fetch(
         `/api/searcharticles?${new URLSearchParams({ q: term.trim() })}`,
       );
-      if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 402) {
+          const message =
+            data?.error ||
+            "Vous avez atteint votre limite de recherches pour ce mois.";
+          toast.error(message);
+          window.alert(message);
+          return;
+        }
+
+        if (res.status === 401) {
+          const message =
+            data?.error || "Veuillez vous connecter pour effectuer une recherche.";
+          toast.error(message);
+          window.alert(message);
+          return;
+        }
+
+        throw new Error(data?.error || `Server returned ${res.status}`);
+      }
 
       const mapPart = (item: any, source: RetailerSource): AutoCarePart => ({
         partTerminologyName: item.partTerminologyName ?? "Sans titre",
@@ -278,7 +283,7 @@ export function HeroSection() {
         description: item.description ?? "",
         price:
           typeof item.price === "string"
-            ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
+            ? (parsePrice(item.price) ?? undefined)
             : typeof item.price === "number"
               ? item.price
               : undefined,
@@ -324,7 +329,7 @@ export function HeroSection() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to bottom, #052e5c 5%,#031129 30%, #031129 75%, #052e5c 100%)",
+              "linear-gradient(to bottom, #031129 5%,#031129 30%, #031129 75%, #052e5c 100%)",
           }}
         />
 
@@ -463,26 +468,26 @@ export function HeroSection() {
         </div>
         {/* Inline lock message */}
         {showLockMsg && !isPaid && (
-          <div className="mt-2 flex items-center gap-2 rounded-[8px] bg-blue-100/60 border border-[rgba(29, 29, 29, 0.3)] px-4 py-2.5 text-[12.5px] text-[#000000]">
-            <span>🔒</span>
+          <div className="mt-3 flex space-between justify-center items-center text-center gap-2 rounded-[8px] bg-blue-100/60 border border-[rgba(29, 29, 29, 0.3)] px-4 py-2.5 text-[12.5px] md:text-[13.5px] text-[#000000]">
+            <span>🔴</span>
             <span>
               Cette fonctionnalité est réservée aux membres payants.{" "}
               <Link
                 href="/register"
-                className="underline font-semibold hover:text-yellow-300 transition-colors"
+                className="underline font-semibold hover:text-gray-700 transition-colors"
               >
                 Créer un compte
               </Link>{" "}
               ou{" "}
               <Link
-                href="/login"
-                className="underline font-semibold hover:text-yellow-300 transition-colors"
+                href="/subscriptions"
+                className="underline font-semibold hover:text-gray-700 transition-colors"
               >
-                se connecter
+                Abonner-vous
               </Link>
               .
             </span>
-            <span>🔒</span>
+            <span>🔴</span>
           </div>
         )}
       </div>{" "}

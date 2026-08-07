@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { enforceRateLimit } from "@/lib/api/rate-limit";
-
-function localizeGoogleLink(url: string | null): string | null {
-  if (!url) return null;
-  if (url.includes("google.com/shopping")) {
-    return url.includes("?") ? `${url}&gl=ca` : `${url}?gl=ca`;
-  }
-  return url;
-}
+import { searchScrapingdogProducts } from "@/lib/api/scrapingdog";
+import { getSearchRegionFromRequest } from "@/lib/api/search-region";
+import { enforceSubscriptionSearchLimit } from "@/lib/api/subscription-limits";
 
 // Intelligently format a size + unit for construction search
 function formatSize(size: string, sizeUnit: string): string {
   if (!size) return "";
   const trimmed = size.trim();
 
-  // Dimension format like "4x8", "2x4x8", "4 x 8" — normalize spaces around x
+  // Dimension format like "4x8", "2x4x8", "4 x 8" - normalize spaces around x
   const isDimension = /\d+\s*x\s*\d+/i.test(trimmed);
 
   if (isDimension) {
@@ -22,13 +17,13 @@ function formatSize(size: string, sizeUnit: string): string {
     // If user picked a linear unit (po, cm, mm, pi, m), infer area unit
     const areaUnit =
       sizeUnit === "pi"
-        ? "pi²"
+        ? "pi2"
         : sizeUnit === "m"
-          ? "m²"
+          ? "m2"
           : sizeUnit === "po"
-            ? "po²"
+            ? "po2"
             : sizeUnit === "cm"
-              ? "cm²"
+              ? "cm2"
               : sizeUnit; // already an area/volume unit
     return `${normalized} ${areaUnit}`;
   }
@@ -40,6 +35,9 @@ function formatSize(size: string, sizeUnit: string): string {
 export async function POST(req: NextRequest) {
   const rateLimited = enforceRateLimit(req, "searchmaterial", 4, 60_000);
   if (rateLimited) return rateLimited;
+
+  const subscriptionLimited = await enforceSubscriptionSearchLimit("material");
+  if (subscriptionLimited) return subscriptionLimited;
 
   const { material, category, quantity, unit, size, sizeUnit } =
     await req.json();
@@ -54,53 +52,14 @@ export async function POST(req: NextRequest) {
     quantity && unit ? `${quantity} ${unit}` : "",
   ].filter(Boolean);
   const q = queryParts.join(" ").trim();
-  const apiKey = process.env.SERPAPI_API_KEY!;
-  const enc = encodeURIComponent(q);
-
-  const amazonUrl = `https://serpapi.com/search.json?engine=amazon&k=${enc}&amazon_domain=amazon.ca&api_key=${apiKey}`;
-  const shoppingUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${enc}&location=Montreal%2C+Quebec%2C+Canada&google_domain=google.ca&gl=ca&hl=fr&api_key=${apiKey}`;
 
   try {
-    const [amazonRes, shoppingRes] = await Promise.all([
-      fetch(amazonUrl),
-      fetch(shoppingUrl),
-    ]);
-
-    const [amazonData, shoppingData] = await Promise.all([
-      amazonRes.json(),
-      shoppingRes.json(),
-    ]);
-
-    const amazon = (amazonData.organic_results || []).map((item: any) => ({
-      partTerminologyName: item.title,
-      brandLabel: item.brand || "Amazon",
-      partNumber: item.asin || "N/A",
-      description: item.title,
-      price:
-        typeof item.price === "string"
-          ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
-          : (item.price?.extracted_value ?? item.price ?? null),
-      link: item.asin
-        ? `https://www.amazon.ca/dp/${item.asin}`
-        : item.link || null,
-      thumbnail: item.thumbnail || item.image || null,
-      source: "amazon" as const,
-    }));
-
-    const shopping = (shoppingData.shopping_results || []).map((item: any) => ({
-      partTerminologyName: item.title,
-      brandLabel: item.source || "Google Shopping",
-      partNumber: item.product_id || "N/A",
-      description: item.title,
-      price: item.extracted_price ?? item.price ?? null,
-      link: item.product_link || localizeGoogleLink(item.link),
-      thumbnail: item.thumbnail || null,
-      source: "shopping" as const,
-    }));
-
+    const { amazon, shopping } = await searchScrapingdogProducts(q, {
+      region: getSearchRegionFromRequest(req),
+    });
     return NextResponse.json({ amazon, shopping, query: q });
   } catch (error) {
-    console.error("SerpApi Error:", error);
+    console.error("Scrapingdog Error:", error);
     return NextResponse.json(
       { amazon: [], shopping: [], query: q },
       { status: 500 },
