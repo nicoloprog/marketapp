@@ -69,30 +69,27 @@ function PartCard({
       href={part.link ?? "#"}
       target="_blank"
       rel="noopener noreferrer"
-      className={`group relative flex flex-col overflow-hidden rounded-3xl border backdrop-blur-md transition-all duration-300 ${
-        isCheapest ? "border-[#61fa7d55]" : "border-[#38bdf81f] bg-[#0a101a99]"
+      className={`group relative flex min-h-[300px] flex-col overflow-visible rounded-2xl border border-transparent bg-transparent transition-all duration-300 ${
+        isCheapest ? "ring-0" : ""
       } ${
-        part.link
-          ? "hover:-translate-y-1.5 hover:border-[rgba(56,189,248,0.4)] cursor-pointer"
-          : "cursor-default"
+        part.link ? "cursor-pointer hover:-translate-y-1" : "cursor-default"
       }`}
     >
       {/* Best price ribbon */}
       {isCheapest && (
-        <div className="absolute top-3 left-3 z-10 flex items-center gap-1 rounded-full bg-gradient-to-r from-[#4ade80]/60 to-[#4ade80]/50 pl-1.5 pr-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-black/70 shadow-[0_2px_10px_rgba(74,222,128,0.4)]">
+        <div className="absolute left-1/2 top-[132px] z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-[#4ade80] px-3 py-1 text-[10px] font-bold text-slate-950 shadow-[0_8px_24px_rgba(74,222,128,0.35)]">
           <Sparkles size={12} strokeWidth={2.5} />
-          meilleur prix
+          Meilleur prix
         </div>
       )}
 
       {/* Image */}
       {part.thumbnail && !imgError ? (
-        <div className="relative w-full h-44 overflow-hidden bg-[#0a0f18]">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f18] via-transparent to-transparent opacity-60 z-[1]" />
+        <div className="flex h-40 w-full items-center justify-center overflow-hidden rounded-t-2xl border border-[#38bdf81f] bg-gradient-to-b from-slate-50 to-slate-200">
           <img
             src={part.thumbnail}
             alt={part.partTerminologyName}
-            className="w-full h-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-110"
+            className="h-full w-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-105"
             onError={() => setImgError(true)}
           />
         </div>
@@ -101,47 +98,46 @@ function PartCard({
       )}
 
       {/* Content */}
-      <div className="flex flex-1 flex-col gap-4 p-6 rounded-b-3xl bg-gradient-to-b from-slate-100/10 via-slate-100/10 via-white/20 to-white/10 backdrop-blur-xl">
+      <div className="relative -mt-3 mx-0 mb-3 flex flex-1 flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_12px_30px_rgba(2,6,23,0.28)] backdrop-blur transition-shadow group-hover:shadow-[0_18px_42px_rgba(14,165,233,0.16)]">
         {/* Source / brand */}
-        <div className="flex items-center gap-1.5 min-w-0">
+        <div className="flex min-w-0 items-center gap-1.5">
           {part.source === "shopping" && (
-            <span className="rounded-full bg-gradient-to-t from-slate-100/30 to-white/60 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-slate-950">
+            <span className="truncate text-[10px] font-semibold uppercase tracking-wide underline text-blue-400">
               {part.brandLabel}
             </span>
           )}
           {part.source === "amazon" && (
-            <span className="rounded-full bg-gradient-to-t from-slate-100/30 to-white/60 px-2.5 py-0.5 text-[9px] font-bold tracking-wide text-slate-950">
+            <span className="truncate text-[10px] font-semibold uppercase tracking-wide underline text-blue-400">
               Amazon
             </span>
           )}
         </div>
 
         {/* Title */}
-        <h3 className="flex-1 line-clamp-2 text-[15px] font-bold leading-snug tracking-tight text-slate-200/90 hover:text-white transition-colors duration-200">
+        <h3 className="line-clamp-2 min-h-[40px] flex-1 text-sm font-semibold leading-snug text-white transition-colors duration-200">
           {part.partTerminologyName}
         </h3>
         {/* Price row */}
-        <div className="flex items-center justify-between pt-3 border-t border-white/[0.08]">
+        <div className="mt-auto flex items-center justify-end pt-1">
           {part.price != null ? (
-            <div className="flex items-baseline gap-1 ml-auto text-right">
-              <span
-                className={`text-[22px] font-bold tracking-tight ${
-                  isCheapest ? "text-[#4ade80]/80" : "text-[#e2ecfb]"
-                }`}
-              >
+            <div
+              className={`inline-flex items-center gap-1 rounded-full border px-4 py-1 text-sm font-bold ${
+                isCheapest
+                  ? "border-green-300/60 bg-green-400/12 text-green-300"
+                  : "border-blue-300/45 bg-blue-400/10 text-blue-200"
+              }`}
+            >
+              <span className={isCheapest ? "text-green-300" : "text-blue-200"}>
                 {formatPrice(part.price)}
               </span>
-              <span className="text-[10px] text-gray-300 font-bold">$</span>
             </div>
           ) : (
-            <span className="text-xs text-[#6b7fa3] italic ml-auto">
-              Voir le site
-            </span>
+            <span className="text-xs text-[#6b7fa3] italic">Voir le site</span>
           )}
 
           <ExternalLink
             size={14}
-            className="text-[#38bdf8] opacity-0 -translate-x-1 transition-[opacity,transform] duration-200 group-hover:opacity-100 group-hover:translate-x-0"
+            className="absolute right-4 top-4 text-[#38bdf8] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
           />
         </div>
       </div>
@@ -267,7 +263,8 @@ export function HeroSection() {
 
         if (res.status === 401) {
           const message =
-            data?.error || "Veuillez vous connecter pour effectuer une recherche.";
+            data?.error ||
+            "Veuillez vous connecter pour effectuer une recherche.";
           toast.error(message);
           window.alert(message);
           return;

@@ -32,7 +32,7 @@ export function SubscriptionCheckoutButton({
         credentials: "same-origin",
         body: JSON.stringify({ plan, billingCycle }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (res.status === 401) {
         window.location.assign("/login?next=/subscriptions");
@@ -40,7 +40,10 @@ export function SubscriptionCheckoutButton({
       }
 
       if (!res.ok || !data.url) {
-        throw new Error(data.error || "Stripe n'est pas disponible.");
+        const detail = [data.error, data.stage, data.stripeParam]
+          .filter(Boolean)
+          .join(" ");
+        throw new Error(detail || "Stripe n'est pas disponible.");
       }
 
       if (data.mode === "portal") {
@@ -51,9 +54,10 @@ export function SubscriptionCheckoutButton({
 
       window.location.assign(data.url);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Stripe n'est pas disponible.",
-      );
+      const message =
+        error instanceof Error ? error.message : "Stripe n'est pas disponible.";
+      toast.error(message);
+      window.alert(message);
       setLoading(false);
     }
   };

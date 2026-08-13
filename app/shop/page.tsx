@@ -239,24 +239,28 @@ function PartCard({
       href={part.link ?? "#"}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative flex flex-col rounded-xl border bg-card overflow-hidden transition-all group ${
+      className={`group relative flex min-h-[300px] flex-col overflow-visible rounded-2xl border border-transparent bg-transparent transition-all duration-300 ${
         part.link
-          ? "hover:-translate-y-0.5 hover:border-blue-400/40 cursor-pointer"
+          ? "cursor-pointer hover:-translate-y-1"
           : "cursor-default"
-      } ${isCheapest ? "ring-2 ring-green-500 dark:ring-green-500" : ""}`}
+      } ${
+        isCheapest
+          ? "ring-0"
+          : ""
+      }`}
     >
       {isCheapest && (
-        <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shadow">
+        <div className="absolute left-1/2 top-[132px] z-10 -translate-x-1/2 rounded-full bg-green-400 px-3 py-1 text-[10px] font-bold text-slate-950 shadow-[0_8px_24px_rgba(74,222,128,0.35)]">
           Meilleur prix
         </div>
       )}
 
       {part.thumbnail && !imgError ? (
-        <div className="w-full h-40 bg-muted flex items-center justify-center overflow-hidden">
+        <div className="flex h-40 w-full items-center justify-center overflow-hidden rounded-t-2xl border border-blue-400/15 bg-gradient-to-b from-slate-50 to-slate-200">
           <img
             src={part.thumbnail}
             alt={part.partTerminologyName}
-            className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-200"
+            className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
             onError={() => setImgError(true)}
           />
         </div>
@@ -264,34 +268,40 @@ function PartCard({
         <ImagePlaceholder />
       )}
 
-      <div className="flex flex-col gap-2 p-4 flex-1">
+      <div className="relative -mt-2 mx-3 mb-3 flex flex-1 flex-col gap-3 rounded-2xl border border-white/10 bg-[#0b1628] p-4 shadow-[0_12px_30px_rgba(2,6,23,0.28)] backdrop-blur transition-shadow group-hover:shadow-[0_18px_42px_rgba(14,165,233,0.16)]">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex min-w-0 items-center gap-1.5">
             {part.source === "shopping" && (
-              <span className="text-[10px] text-blue-400 truncate">
+              <span className="truncate text-[10px] font-semibold uppercase tracking-wide text-blue-300">
                 {part.brandLabel}
               </span>
             )}
             <SourceBadge source={part.source} />
           </div>
           {part.link && (
-            <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+            <ExternalLink className="h-3.5 w-3.5 shrink-0 text-blue-300/55 transition-colors group-hover:text-blue-200" />
           )}
         </div>
 
-        <h3 className="font-medium text-sm leading-snug line-clamp-2 flex-1">
+        <h3 className="line-clamp-2 min-h-[40px] flex-1 text-sm font-semibold leading-snug text-white">
           {part.partTerminologyName}
         </h3>
 
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
+        <div className="mt-auto flex items-center justify-center pt-1">
           {part.price != null ? (
-            <div className="flex items-baseline gap-1">
+            <div
+              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-bold ${
+                isCheapest
+                  ? "border-green-300/60 bg-green-400/12 text-green-300"
+                  : "border-blue-300/45 bg-blue-400/10 text-blue-200"
+              }`}
+            >
               <span
-                className={`text-base font-bold ${isCheapest ? "text-green-600 dark:text-green-400" : "text-foreground"}`}
+                className={isCheapest ? "text-green-300" : "text-blue-200"}
               >
                 {formatPrice(part.price)}
               </span>
-              <span className="text-[10px] text-muted-foreground font-medium">
+              <span className="text-[10px] font-bold text-slate-300">
                 CA$
               </span>
             </div>

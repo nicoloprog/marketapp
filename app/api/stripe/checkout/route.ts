@@ -27,6 +27,15 @@ type BillingProfile = {
   stripe_subscription_status: string | null;
 };
 
+type StripeErrorPayload = {
+  error?: {
+    code?: string;
+    message?: string;
+    param?: string;
+    type?: string;
+  };
+};
+
 function isPlanKey(value: unknown): value is PlanKey {
   return (
     typeof value === "string" &&
@@ -38,12 +47,22 @@ function isBillingCycle(value: unknown): value is BillingCycle {
   return value === "monthly" || value === "yearly";
 }
 
+function readBodyValue(body: unknown, key: string) {
+  return body && typeof body === "object"
+    ? (body as Record<string, unknown>)[key]
+    : null;
+}
+
 function getBaseUrl(req: NextRequest) {
   return process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 }
 
 function hasManagedSubscription(status: string | null | undefined) {
   return ["active", "trialing", "past_due", "unpaid"].includes(status || "");
+}
+
+function isMissingStripeCustomerError(data: StripeErrorPayload) {
+  return data.error?.code === "resource_missing" && data.error?.param === "customer";
 }
 
 async function createBillingPortalSession(
@@ -118,6 +137,71 @@ async function createStripeCustomer(
   return { customerId: customerData.id as string };
 }
 
+async function saveStripeCustomerId(
+  adminClient: ReturnType<typeof createAdminClient>,
+  userId: string,
+  customerId: string | null,
+) {
+  if (!adminClient) {
+    return { error: "Admin client is not configured." };
+  }
+
+  const { error } = await adminClient
+    .from("profiles")
+    .update({ stripe_customer_id: customerId })
+    .eq("id", userId);
+
+  return { error: error?.message };
+}
+
+async function ensureStripeCustomer(
+  stripeSecretKey: string,
+  adminClient: ReturnType<typeof createAdminClient>,
+  userId: string,
+  email: string | null | undefined,
+  currentCustomerId: string | null,
+) {
+  if (currentCustomerId) {
+    return { customerId: currentCustomerId };
+  }
+
+  const customerResult = await createStripeCustomer(stripeSecretKey, userId, email);
+
+  if ("error" in customerResult) {
+    return customerResult;
+  }
+
+  const saveResult = await saveStripeCustomerId(
+    adminClient,
+    userId,
+    customerResult.customerId,
+  );
+
+  if (saveResult.error) {
+    return { error: saveResult.error, status: 500 };
+  }
+
+  return { customerId: customerResult.customerId };
+}
+
+async function createCheckoutSession(
+  stripeSecretKey: string,
+  params: URLSearchParams,
+) {
+  const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${stripeSecretKey}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params,
+  });
+
+  const data = await stripeRes.json();
+
+  return { ok: stripeRes.ok, status: stripeRes.status, data };
+}
+
 async function createRouteClient() {
   const cookieStore = await cookies();
 
@@ -185,17 +269,23 @@ export async function POST(req: NextRequest) {
   const profile = profileData as BillingProfile | null;
 
   const body: unknown = await req.json().catch(() => null);
-  const plan = body && typeof body === "object" ? (body as { plan?: unknown }).plan : null;
-  const requestedBillingCycle =
-    body && typeof body === "object"
-      ? (body as { billingCycle?: unknown }).billingCycle
-      : null;
+  const plan = readBodyValue(body, "plan");
+  const requestedBillingCycle = readBodyValue(body, "billingCycle");
   const billingCycle: BillingCycle = isBillingCycle(requestedBillingCycle)
     ? requestedBillingCycle
     : "monthly";
 
   if (!isPlanKey(plan)) {
-    return NextResponse.json({ error: "Invalid subscription plan." }, { status: 400 });
+    console.error("Invalid Stripe checkout plan:", { plan, billingCycle });
+    return NextResponse.json(
+      {
+        error: "Invalid subscription plan.",
+        stage: "plan_validation",
+        receivedPlan: plan,
+        receivedBillingCycle: requestedBillingCycle,
+      },
+      { status: 400 },
+    );
   }
 
   const normalizedPlan = plan === "enterprise" ? "business" : plan;
@@ -225,13 +315,17 @@ export async function POST(req: NextRequest) {
     );
 
     if ("error" in portalResult) {
-      return NextResponse.json(
-        { error: portalResult.error },
-        { status: portalResult.status },
-      );
+      if (portalResult.error.includes("No such customer")) {
+        await saveStripeCustomerId(adminClient, user.id, null);
+      } else {
+        return NextResponse.json(
+          { error: portalResult.error },
+          { status: portalResult.status },
+        );
+      }
+    } else {
+      return NextResponse.json({ url: portalResult.url, mode: "portal" });
     }
-
-    return NextResponse.json({ url: portalResult.url, mode: "portal" });
   }
 
   const params = new URLSearchParams({
@@ -255,13 +349,39 @@ export async function POST(req: NextRequest) {
     params.set("automatic_tax[enabled]", "true");
   }
 
-  let stripeCustomerId = profile?.stripe_customer_id ?? null;
+  let customerResult = await ensureStripeCustomer(
+    stripeSecretKey,
+    adminClient,
+    user.id,
+    user.email,
+    profile?.stripe_customer_id ?? null,
+  );
 
-  if (!stripeCustomerId) {
-    const customerResult = await createStripeCustomer(
+  if ("error" in customerResult) {
+    return NextResponse.json(
+      { error: customerResult.error },
+      { status: customerResult.status },
+    );
+  }
+
+  params.set("customer", customerResult.customerId);
+
+  let checkoutResult = await createCheckoutSession(stripeSecretKey, params);
+
+  if (!checkoutResult.ok && isMissingStripeCustomerError(checkoutResult.data)) {
+    console.warn("Stored Stripe customer was missing; creating a new customer.", {
+      userId: user.id,
+      customerId: customerResult.customerId,
+    });
+
+    await saveStripeCustomerId(adminClient, user.id, null);
+
+    customerResult = await ensureStripeCustomer(
       stripeSecretKey,
+      adminClient,
       user.id,
       user.email,
+      null,
     );
 
     if ("error" in customerResult) {
@@ -271,40 +391,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    stripeCustomerId = customerResult.customerId;
-
-    const { error: customerSaveError } = await adminClient
-      .from("profiles")
-      .update({ stripe_customer_id: stripeCustomerId })
-      .eq("id", user.id);
-
-    if (customerSaveError) {
-      return NextResponse.json(
-        { error: customerSaveError.message },
-        { status: 500 },
-      );
-    }
+    params.set("customer", customerResult.customerId);
+    checkoutResult = await createCheckoutSession(stripeSecretKey, params);
   }
 
-  params.set("customer", stripeCustomerId);
-
-  const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${stripeSecretKey}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: params,
-  });
-
-  const data = await stripeRes.json();
-
-  if (!stripeRes.ok) {
+  if (!checkoutResult.ok) {
+    console.error("Stripe checkout session error:", checkoutResult.data?.error);
     return NextResponse.json(
-      { error: data?.error?.message || "Unable to start Stripe checkout." },
-      { status: stripeRes.status },
+      {
+        error:
+          checkoutResult.data?.error?.message ||
+          "Unable to start Stripe checkout.",
+        stage: "stripe_checkout_session",
+        stripeCode: checkoutResult.data?.error?.code,
+        stripeParam: checkoutResult.data?.error?.param,
+      },
+      { status: checkoutResult.status },
     );
   }
 
-  return NextResponse.json({ url: data.url });
+  return NextResponse.json({ url: checkoutResult.data.url });
 }

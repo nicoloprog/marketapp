@@ -5,108 +5,108 @@ import { SiteFooter, SiteHeader } from "@/components/site-layout";
 
 const sections = [
   {
-    title: "1. Overview",
+    title: "1. Aperçu",
     body: [
-      "This Privacy Policy explains how BanditPrice collects, uses, shares, and protects information when you use our website, account features, search tools, subscriptions, location preferences, and related services.",
-      "We aim to describe our data practices clearly and accurately. We do not sell payment card data, and we do not store full payment card numbers on our servers.",
+      "La présente Politique de confidentialité explique comment BanditPrice collecte, utilise, partage et protège les renseignements lorsque vous utilisez notre site Web, les fonctionnalités de compte, les outils de recherche, les abonnements, les préférences de localisation et les services connexes.",
+      "Nous visons à décrire nos pratiques de données de façon claire et exacte. Nous ne vendons pas les données de cartes de paiement et nous ne stockons pas les numéros complets de cartes de paiement sur nos serveurs.",
     ],
   },
   {
-    title: "2. Information We Collect",
+    title: "2. Renseignements que nous collectons",
     body: [
-      "Account information: name, email address, user ID, role, subscription plan, subscription status, and account settings.",
-      "Search information: product search terms, vehicle make/model/year, VIN or vehicle details you submit, construction material searches, search source, and monthly search usage counts.",
-      "Location information: country, province/state, city, or approximate browser location only when you allow location access or manually select a location.",
-      "Payment and billing information: Stripe customer ID, subscription ID, subscription status, plan metadata, invoices, and billing portal activity. Stripe processes payment card details directly.",
-      "Technical information: cookies, device/browser information, IP-derived security signals, request logs, rate-limit events, and pages or features used.",
+      "Renseignements de compte : nom, adresse courriel, identifiant utilisateur, rôle, plan d'abonnement, statut de l'abonnement et paramètres du compte.",
+      "Renseignements de recherche : termes de recherche de produits, marque/modèle/année du véhicule, NIV ou détails de véhicule que vous soumettez, recherches de matériaux de construction, source de recherche et décomptes mensuels d'utilisation des recherches.",
+      "Renseignements de localisation : pays, province/État, ville ou localisation approximative du navigateur uniquement lorsque vous autorisez l'accès à la localisation ou sélectionnez manuellement une localisation.",
+      "Renseignements de paiement et de facturation : identifiant client Stripe, identifiant d'abonnement, statut de l'abonnement, métadonnées du plan, factures et activité du portail de facturation. Stripe traite directement les détails des cartes de paiement.",
+      "Renseignements techniques : cookies, renseignements sur l'appareil/le navigateur, signaux de sécurité dérivés de l'adresse IP, journaux de requêtes, événements de limite de débit et pages ou fonctionnalités utilisées.",
     ],
   },
   {
-    title: "3. How We Use Information",
+    title: "3. Comment nous utilisons les renseignements",
     body: [
-      "To provide product search, vehicle part search, construction material search, and localized shopping results.",
-      "To manage accounts, authentication, subscriptions, monthly search limits, customer support, billing, and administrative controls.",
-      "To protect the service from fraud, abuse, unauthorized access, scraping misuse, and security incidents.",
-      "To improve reliability, search quality, user experience, and product performance.",
-      "To comply with legal, tax, accounting, chargeback, and payment-processing obligations.",
+      "Pour fournir la recherche de produits, la recherche de pièces de véhicule, la recherche de matériaux de construction et les résultats d'achat localisés.",
+      "Pour gérer les comptes, l'authentification, les abonnements, les limites de recherche mensuelles, le soutien client, la facturation et les contrôles administratifs.",
+      "Pour protéger le service contre la fraude, les abus, les accès non autorisés, l'utilisation abusive de l'extraction automatisée et les incidents de sécurité.",
+      "Pour améliorer la fiabilité, la qualité des recherches, l'expérience utilisateur et la performance du produit.",
+      "Pour respecter les obligations juridiques, fiscales, comptables, de rétrofacturation et de traitement des paiements.",
     ],
   },
   {
-    title: "4. Cookies, Consent, and Location",
+    title: "4. Cookies, consentement et localisation",
     body: [
-      "We use cookies and local browser storage for sign-in sessions, cookie consent, selected country/region/city, and basic app preferences.",
-      "If you decline optional location consent, we do not use browser geolocation for regional product results. You may still select a location manually where available.",
-      "You can clear cookies or revoke browser location permission in your browser settings. Doing so may reset preferences or require you to sign in again.",
+      "Nous utilisons des cookies et le stockage local du navigateur pour les sessions de connexion, le consentement aux cookies, le pays/la région/la ville sélectionnés et les préférences de base de l'application.",
+      "Si vous refusez le consentement optionnel à la localisation, nous n'utilisons pas la géolocalisation du navigateur pour les résultats de produits régionaux. Vous pouvez tout de même sélectionner une localisation manuellement lorsque cette option est disponible.",
+      "Vous pouvez supprimer les cookies ou révoquer l'autorisation de localisation du navigateur dans les paramètres de votre navigateur. Cela peut réinitialiser les préférences ou vous obliger à vous reconnecter.",
     ],
   },
   {
-    title: "5. Sharing and Service Providers",
+    title: "5. Partage et fournisseurs de services",
     body: [
-      "We share information with service providers only as needed to operate the app. These may include Supabase for authentication/database services, Stripe for payments and billing, search providers used to retrieve product results, hosting/infrastructure providers, and security or analytics tools.",
-      "When you click a retailer result, you leave BanditPrice and the retailer's own privacy practices apply.",
-      "We may disclose information if required by law, legal process, fraud prevention, security investigations, or to protect rights, users, and the service.",
+      "Nous partageons des renseignements avec des fournisseurs de services uniquement lorsque cela est nécessaire pour exploiter l'application. Ceux-ci peuvent inclure Supabase pour les services d'authentification/de base de données, Stripe pour les paiements et la facturation, les fournisseurs de recherche utilisés pour récupérer les résultats de produits, les fournisseurs d'hébergement/d'infrastructure et les outils de sécurité ou d'analyse.",
+      "Lorsque vous cliquez sur un résultat de détaillant, vous quittez BanditPrice et les propres pratiques de confidentialité du détaillant s'appliquent.",
+      "Nous pouvons divulguer des renseignements si la loi, une procédure judiciaire, la prévention de la fraude, les enquêtes de sécurité ou la protection des droits, des utilisateurs et du service l'exigent.",
     ],
   },
   {
-    title: "6. Payment Data",
+    title: "6. Données de paiement",
     body: [
-      "Payment checkout, card collection, invoices, subscription changes, and cancellations are handled by Stripe. BanditPrice receives limited billing metadata such as customer ID, subscription ID, plan, and subscription status.",
-      "Do not enter payment card data anywhere except the hosted Stripe checkout or Stripe billing portal pages.",
+      "Le paiement, la collecte des cartes, les factures, les changements d'abonnement et les annulations sont gérés par Stripe. BanditPrice reçoit des métadonnées de facturation limitées, comme l'identifiant client, l'identifiant d'abonnement, le plan et le statut de l'abonnement.",
+      "N'entrez pas de données de carte de paiement ailleurs que sur les pages de Checkout Stripe hébergées ou du portail de facturation Stripe.",
     ],
   },
   {
-    title: "7. Your Choices and Access",
+    title: "7. Vos choix et votre accès",
     body: [
-      "You can access your account page to review account status, subscription status, and monthly search usage.",
-      "You can manage subscription billing, cancellation, payment methods, and invoices through the Stripe Billing Portal when available.",
-      "You may contact us to request access, correction, deletion, or export of personal information, subject to identity verification and legal retention requirements.",
+      "Vous pouvez accéder à votre page de compte pour consulter le statut du compte, le statut de l'abonnement et l'utilisation mensuelle des recherches.",
+      "Vous pouvez gérer la facturation de l'abonnement, l'annulation, les méthodes de paiement et les factures par l'entremise du portail de facturation Stripe lorsqu'il est disponible.",
+      "Vous pouvez nous contacter pour demander l'accès, la correction, la suppression ou l'exportation de renseignements personnels, sous réserve de la vérification de votre identité et des exigences de conservation légale.",
     ],
   },
   {
-    title: "8. Data Retention and Security",
+    title: "8. Conservation des données et sécurité",
     body: [
-      "We keep account and subscription records while your account is active and as needed for billing, security, legal, tax, accounting, and dispute purposes.",
-      "Monthly search usage is kept to enforce subscription limits, audit abuse, and provide account/admin visibility. We may aggregate or de-identify data for service improvement.",
-      "We use reasonable administrative, technical, and organizational safeguards designed to protect personal information, including authentication controls, server-side subscription enforcement, rate limits, and limited access to administrative tools.",
+      "Nous conservons les dossiers de compte et d'abonnement tant que votre compte est actif et selon les besoins liés à la facturation, à la sécurité, aux obligations juridiques, fiscales et comptables ainsi qu'aux différends.",
+      "L'utilisation mensuelle des recherches est conservée pour appliquer les limites d'abonnement, auditer les abus et fournir une visibilité au compte et aux administrateurs. Nous pouvons agréger ou anonymiser les données pour améliorer le service.",
+      "Nous utilisons des mesures de protection administratives, techniques et organisationnelles raisonnables conçues pour protéger les renseignements personnels, y compris les contrôles d'authentification, l'application côté serveur des abonnements, les limites de débit et l'accès limité aux outils administratifs.",
     ],
   },
   {
-    title: "9. GDPR, UK GDPR, and EEA/UK Rights",
+    title: "9. RGPD, RGPD du Royaume-Uni et droits EEE/Royaume-Uni",
     body: [
-      "If you are in the European Economic Area, United Kingdom, or another region with similar data protection laws, you may have rights to access, correct, delete, restrict, object to, or receive a portable copy of your personal data.",
-      "Where processing is based on consent, you may withdraw consent at any time. Withdrawing consent does not affect processing that happened before withdrawal.",
-      "We process personal data to provide the service, perform our contract with you, comply with legal obligations, protect legitimate interests such as security and fraud prevention, and, where required, based on consent.",
-      "You may also have the right to complain to your local data protection authority.",
+      "Si vous êtes dans l'Espace économique européen, au Royaume-Uni ou dans une autre région dotée de lois similaires sur la protection des données, vous pouvez avoir le droit d'accéder à vos données personnelles, de les corriger, de les supprimer, d'en restreindre le traitement, de vous y opposer ou d'en recevoir une copie portable.",
+      "Lorsque le traitement repose sur le consentement, vous pouvez retirer votre consentement en tout temps. Le retrait du consentement n'affecte pas le traitement effectué avant ce retrait.",
+      "Nous traitons les données personnelles pour fournir le service, exécuter notre contrat avec vous, respecter nos obligations légales, protéger des intérêts légitimes comme la sécurité et la prévention de la fraude et, lorsque requis, sur la base du consentement.",
+      "Vous pouvez également avoir le droit de déposer une plainte auprès de votre autorité locale de protection des données.",
     ],
   },
   {
-    title: "10. California Privacy Notice",
+    title: "10. Avis de confidentialité de la Californie",
     body: [
-      "If you are a California resident, you may have rights to know/access, delete, correct, opt out of sale or sharing, limit use of sensitive personal information, and not be discriminated against for exercising privacy rights.",
-      "BanditPrice does not sell personal information for money. We also do not intentionally share personal information for cross-context behavioral advertising. If that changes, we will update this policy and provide required opt-out controls.",
-      "The categories of personal information we may collect include identifiers, account information, subscription and transaction metadata, internet or network activity, approximate location or manually selected location, user-provided search information, and inferences needed to provide search and account features.",
-      "We use this information for the business purposes described in this policy, including providing the app, subscriptions, billing, security, fraud prevention, support, compliance, analytics, and service improvement.",
+      "Si vous résidez en Californie, vous pouvez avoir le droit de connaître/d'accéder, de supprimer, de corriger, de vous opposer à la vente ou au partage, de limiter l'utilisation de renseignements personnels sensibles et de ne pas subir de discrimination pour l'exercice de vos droits à la confidentialité.",
+      "BanditPrice ne vend pas de renseignements personnels contre de l'argent. Nous ne partageons pas non plus intentionnellement des renseignements personnels à des fins de publicité comportementale intercontextuelle. Si cela change, nous mettrons à jour cette politique et fournirons les contrôles de retrait requis.",
+      "Les catégories de renseignements personnels que nous pouvons collecter comprennent les identifiants, les renseignements de compte, les métadonnées d'abonnement et de transaction, l'activité Internet ou réseau, la localisation approximative ou sélectionnée manuellement, les renseignements de recherche fournis par l'utilisateur et les inférences nécessaires pour fournir les fonctionnalités de recherche et de compte.",
+      "Nous utilisons ces renseignements aux fins commerciales décrites dans cette politique, notamment pour fournir l'application, les abonnements, la facturation, la sécurité, la prévention de la fraude, le soutien, la conformité, l'analyse et l'amélioration du service.",
     ],
   },
   {
-    title: "11. Sensitive Personal Information",
+    title: "11. Renseignements personnels sensibles",
     body: [
-      "BanditPrice is not designed to collect sensitive health, financial account, government ID, biometric, racial, religious, union, sexual orientation, or children's information.",
-      "Precise browser geolocation is only requested if you choose to use current location. You can deny or revoke browser location permission. We use location to localize product results, not to infer sensitive characteristics.",
+      "BanditPrice n'est pas conçu pour collecter des renseignements sensibles liés à la santé, aux comptes financiers, aux pièces d'identité gouvernementales, aux données biométriques, raciales, religieuses, syndicales, à l'orientation sexuelle ou aux enfants.",
+      "La géolocalisation précise du navigateur est demandée uniquement si vous choisissez d'utiliser votre position actuelle. Vous pouvez refuser ou révoquer l'autorisation de localisation du navigateur. Nous utilisons la localisation pour localiser les résultats de produits, et non pour déduire des caractéristiques sensibles.",
     ],
   },
   {
-    title: "12. Children and Regional Rights",
+    title: "12. Enfants et droits régionaux",
     body: [
-      "BanditPrice is not directed to children under 13, and we do not knowingly collect personal information from children under 13.",
-      "If local laws provide additional privacy rights, we will handle verified requests according to applicable law.",
+      "BanditPrice ne s'adresse pas aux enfants de moins de 13 ans et nous ne collectons pas sciemment de renseignements personnels auprès d'enfants de moins de 13 ans.",
+      "Si les lois locales prévoient des droits supplémentaires en matière de confidentialité, nous traiterons les demandes vérifiées conformément à la loi applicable.",
     ],
   },
   {
-    title: "13. Contact and Updates",
+    title: "13. Contact et mises à jour",
     body: [
-      "We may update this Privacy Policy when our service, providers, legal obligations, or data practices change.",
-      "For privacy questions or requests, contact: contact@banditprice.com.",
+      "Nous pouvons mettre à jour la présente Politique de confidentialité lorsque notre service, nos fournisseurs, nos obligations légales ou nos pratiques de données changent.",
+      "Pour toute question ou demande relative à la confidentialité, contactez : contact@banditprice.com.",
     ],
   },
 ];
@@ -126,17 +126,17 @@ export default function PrivacyPage() {
                 BanditPrice
               </p>
               <h1 className="text-3xl font-bold tracking-tight">
-                Privacy Policy
+                Politique de confidentialité
               </h1>
             </div>
           </div>
           <p className="mt-4 text-sm text-slate-400">
-            Effective date: July 15, 2026
+            Date d'entrée en vigueur : 15 juillet 2026
           </p>
           <p className="mt-4 text-sm leading-6 text-slate-300">
-            This policy is written to provide clear notice of our data practices
-            and to support privacy-by-design expectations. It should be reviewed
-            by qualified counsel before production launch.
+            Cette politique est rédigée afin de fournir un avis clair sur nos
+            pratiques de données et de soutenir les attentes de confidentialité
+            des utilisateurs.
           </p>
         </section>
 
@@ -159,16 +159,16 @@ export default function PrivacyPage() {
         </div>
 
         <div className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-5 text-sm text-slate-300">
-          See also our{" "}
+          Consultez aussi nos{" "}
           <Link href="/terms" className="font-semibold text-cyan-200 underline">
-            Terms of Use
-          </Link>
-          {" "}and{" "}
+            Conditions d'utilisation
+          </Link>{" "}
+          et{" "}
           <Link
             href="/privacy/choices"
             className="font-semibold text-cyan-200 underline"
           >
-            Privacy Choices
+            Choix de confidentialité
           </Link>
           .
         </div>

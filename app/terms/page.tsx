@@ -5,92 +5,92 @@ import { SiteFooter, SiteHeader } from "@/components/site-layout";
 
 const sections = [
   {
-    title: "1. Acceptance of Terms",
+    title: "1. Acceptation des conditions",
     body: [
-      "These Terms of Use govern your access to and use of BanditPrice. By creating an account, subscribing, searching, or using the service, you agree to these Terms.",
-      "If you do not agree, do not use BanditPrice.",
+      "Les présentes Conditions d'utilisation régissent votre accès à BanditPrice et votre utilisation de BanditPrice. En créant un compte, en vous abonnant, en effectuant une recherche ou en utilisant le service, vous acceptez ces Conditions.",
+      "Si vous n'acceptez pas ces Conditions, n'utilisez pas BanditPrice.",
     ],
   },
   {
-    title: "2. The Service",
+    title: "2. Le service",
     body: [
-      "BanditPrice provides product search, vehicle part search, construction material search, localized shopping result discovery, subscription management, and related account features.",
-      "Search results may come from third-party retailers, marketplaces, search providers, public vehicle data sources, or other external services. Availability, pricing, shipping, taxes, stock, and product details may change and must be confirmed with the retailer before purchase.",
+      "BanditPrice fournit la recherche de produits, la recherche de pièces de véhicule, la recherche de matériaux de construction, la découverte de résultats d'achat localisés, la gestion des abonnements et les fonctionnalités de compte connexes.",
+      "Les résultats de recherche peuvent provenir de détaillants tiers, de places de marché, de fournisseurs de recherche, de sources publiques de données sur les véhicules ou d'autres services externes. La disponibilité, les prix, la livraison, les taxes, les stocks et les détails des produits peuvent changer et doivent être confirmés auprès du détaillant avant l'achat.",
     ],
   },
   {
-    title: "3. Accounts and Security",
+    title: "3. Comptes et sécurité",
     body: [
-      "You must provide accurate account information and keep your login credentials confidential.",
-      "You are responsible for activity under your account. Notify us promptly if you suspect unauthorized access.",
-      "We may suspend or restrict accounts that violate these Terms, abuse the service, bypass limits, interfere with security, or create legal or operational risk.",
+      "Vous devez fournir des renseignements de compte exacts et garder vos identifiants de connexion confidentiels.",
+      "Vous êtes responsable de l'activité effectuée avec votre compte. Avisez-nous rapidement si vous soupçonnez un accès non autorisé.",
+      "Nous pouvons suspendre ou restreindre les comptes qui enfreignent ces Conditions, abusent du service, contournent les limites, nuisent à la sécurité ou créent un risque juridique ou opérationnel.",
     ],
   },
   {
-    title: "4. Subscriptions, Billing, and Cancellation",
+    title: "4. Abonnements, facturation et annulation",
     body: [
-      "Paid plans provide monthly search limits and other subscription features described on the subscription page or in your account.",
-      "Payments, payment methods, invoices, subscription changes, and cancellations are processed by Stripe. Stripe's hosted Checkout and Billing Portal may apply their own terms and privacy practices.",
-      "Unless a free trial or promotion applies, subscription fees are billed according to the selected recurring plan. You may cancel or manage your subscription through the Stripe Billing Portal when available.",
-      "Changes to a subscription may result in prorations, changed renewal pricing, or other billing adjustments shown by Stripe.",
+      "Les plans payants offrent des limites de recherche mensuelles et d'autres fonctionnalités d'abonnement décrites sur la page d'abonnement ou dans votre compte.",
+      "Les paiements, les méthodes de paiement, les factures, les changements d'abonnement et les annulations sont traités par Stripe. Le Checkout hébergé et le portail de facturation de Stripe peuvent appliquer leurs propres conditions et pratiques de confidentialité.",
+      "Sauf si un essai gratuit ou une promotion s'applique, les frais d'abonnement sont facturés selon le plan récurrent sélectionné. Vous pouvez annuler ou gérer votre abonnement par l'entremise du portail de facturation Stripe lorsqu'il est disponible.",
+      "Les changements apportés à un abonnement peuvent entraîner des proratas, une modification du prix de renouvellement ou d'autres ajustements de facturation affichés par Stripe.",
     ],
   },
   {
-    title: "5. Search Limits and Fair Use",
+    title: "5. Limites de recherche et utilisation équitable",
     body: [
-      "Monthly search limits are tied to your subscription plan. Beginner, Standard, Business, and Custom plans may have different limits.",
-      "Search counts may include vehicle searches, product searches, material searches, and other product-result queries. Admin users may be exempt from blocking but usage may still be counted for audit visibility.",
-      "You may not automate, scrape, resell, overload, or bypass search limits, rate limits, authentication, location controls, or subscription controls.",
+      "Les limites de recherche mensuelles sont liées à votre plan d'abonnement. Les plans Débutant, Standard, Entreprise et Sur mesure peuvent avoir des limites différentes.",
+      "Les décomptes de recherche peuvent inclure les recherches de véhicules, les recherches de produits, les recherches de matériaux et d'autres requêtes de résultats de produits. Les administrateurs peuvent être exemptés du blocage, mais l'utilisation peut tout de même être comptabilisée à des fins de visibilité et d'audit.",
+      "Vous ne pouvez pas automatiser, extraire, revendre, surcharger ou contourner les limites de recherche, les limites de débit, l'authentification, les contrôles de localisation ou les contrôles d'abonnement.",
     ],
   },
   {
-    title: "6. Data and Compliance",
+    title: "6. Données et conformité",
     body: [
-      "You agree that we may process account, subscription, search, usage, location preference, and technical information as described in our Privacy Policy.",
-      "If you submit VINs, vehicle details, product terms, or location selections, you represent that you have the right to submit that information and that it is not unlawful, harmful, or infringing.",
-      "You may not use BanditPrice to process regulated data that the service is not designed to handle, including sensitive health, financial account, government ID, or children's data.",
-      "You are responsible for complying with laws that apply to your use of search results, purchases, resale activity, taxes, consumer protection, import/export, and vehicle repair decisions.",
+      "Vous acceptez que nous puissions traiter les renseignements de compte, d'abonnement, de recherche, d'utilisation, de préférence de localisation et les renseignements techniques comme décrit dans notre Politique de confidentialité.",
+      "Si vous soumettez des NIV, des détails de véhicule, des termes de produits ou des choix de localisation, vous déclarez avoir le droit de soumettre ces renseignements et qu'ils ne sont pas illégaux, nuisibles ou contrefaisants.",
+      "Vous ne pouvez pas utiliser BanditPrice pour traiter des données réglementées que le service n'est pas conçu pour gérer, y compris des données sensibles sur la santé, des comptes financiers, des pièces d'identité gouvernementales ou des enfants.",
+      "Vous êtes responsable du respect des lois qui s'appliquent à votre utilisation des résultats de recherche, aux achats, aux activités de revente, aux taxes, à la protection des consommateurs, à l'importation/exportation et aux décisions de réparation de véhicules.",
     ],
   },
   {
-    title: "7. Third-Party Services and Retailers",
+    title: "7. Services tiers et détaillants",
     body: [
-      "BanditPrice may link to Amazon, Google Shopping results, retailers, Stripe, Supabase, public vehicle data sources, and other third-party services.",
-      "We do not control third-party sites, prices, inventory, shipping, returns, warranties, taxes, product descriptions, or merchant practices. Your transactions with third parties are between you and that third party.",
+      "BanditPrice peut créer des liens vers Amazon, des résultats Google Shopping, des détaillants, Stripe, Supabase, des sources publiques de données sur les véhicules et d'autres services tiers.",
+      "Nous ne contrôlons pas les sites tiers, les prix, l'inventaire, la livraison, les retours, les garanties, les taxes, les descriptions de produits ou les pratiques des marchands. Vos transactions avec des tiers se font entre vous et ce tiers.",
     ],
   },
   {
-    title: "8. Product and Vehicle Information",
+    title: "8. Renseignements sur les produits et les véhicules",
     body: [
-      "BanditPrice is an informational search and comparison tool. It does not guarantee that a part, product, or material is compatible, safe, available, or the lowest price.",
-      "For vehicle parts, verify fitment with the manufacturer, retailer, mechanic, or qualified professional before purchase or installation.",
+      "BanditPrice est un outil informatif de recherche et de comparaison. Il ne garantit pas qu'une pièce, un produit ou un matériau est compatible, sécuritaire, disponible ou au prix le plus bas.",
+      "Pour les pièces de véhicule, vérifiez la compatibilité auprès du fabricant, du détaillant, du mécanicien ou d'un professionnel qualifié avant l'achat ou l'installation.",
     ],
   },
   {
-    title: "9. Intellectual Property and Prohibited Conduct",
+    title: "9. Propriété intellectuelle et conduite interdite",
     body: [
-      "BanditPrice, its software, design, branding, and content are owned by us or our licensors. You may not copy, modify, distribute, reverse engineer, or create derivative works except as allowed by law or written permission.",
-      "You may not use BanditPrice for unlawful activity, security testing without permission, automated scraping, credential sharing, subscription fraud, payment fraud, infringement, harassment, malware, or attempts to disrupt the service.",
+      "BanditPrice, son logiciel, son design, son image de marque et son contenu nous appartiennent ou appartiennent à nos concédants. Vous ne pouvez pas copier, modifier, distribuer, faire de l'ingénierie inverse ou créer des œuvres dérivées, sauf si la loi ou une autorisation écrite le permet.",
+      "Vous ne pouvez pas utiliser BanditPrice pour des activités illégales, des tests de sécurité sans autorisation, l'extraction automatisée, le partage d'identifiants, la fraude à l'abonnement, la fraude au paiement, la contrefaçon, le harcèlement, les logiciels malveillants ou des tentatives de perturber le service.",
     ],
   },
   {
-    title: "10. Disclaimers and Limitation of Liability",
+    title: "10. Exclusions de garantie et limitation de responsabilité",
     body: [
-      "BanditPrice is provided on an as-is and as-available basis. We do not promise uninterrupted service, error-free results, guaranteed savings, product availability, or merchant accuracy.",
-      "To the fullest extent permitted by law, we disclaim warranties of merchantability, fitness for a particular purpose, non-infringement, and accuracy.",
-      "To the fullest extent permitted by law, BanditPrice will not be liable for indirect, incidental, special, consequential, exemplary, or punitive damages, or for lost profits, lost data, purchase decisions, repair outcomes, or third-party merchant issues.",
+      "BanditPrice est fourni tel quel et selon la disponibilité. Nous ne promettons pas un service ininterrompu, des résultats sans erreur, des économies garanties, la disponibilité des produits ou l'exactitude des marchands.",
+      "Dans toute la mesure permise par la loi, nous excluons les garanties de qualité marchande, d'adaptation à un usage particulier, d'absence de contrefaçon et d'exactitude.",
+      "Dans toute la mesure permise par la loi, BanditPrice ne sera pas responsable des dommages indirects, accessoires, spéciaux, consécutifs, exemplaires ou punitifs, ni des pertes de profits, pertes de données, décisions d'achat, résultats de réparation ou problèmes liés à des marchands tiers.",
     ],
   },
   {
-    title: "11. Termination and Changes",
+    title: "11. Résiliation et modifications",
     body: [
-      "You may stop using the service at any time. We may suspend or terminate access if you violate these Terms, create risk, fail to pay, or misuse the service.",
-      "We may update these Terms as the service changes. Continued use after changes means you accept the updated Terms.",
+      "Vous pouvez cesser d'utiliser le service en tout temps. Nous pouvons suspendre ou résilier l'accès si vous enfreignez ces Conditions, créez un risque, omettez de payer ou utilisez le service de manière abusive.",
+      "Nous pouvons mettre à jour ces Conditions lorsque le service évolue. Votre utilisation continue après les changements signifie que vous acceptez les Conditions mises à jour.",
     ],
   },
   {
     title: "12. Contact",
-    body: ["Questions about these Terms: contact@banditprice.com."],
+    body: ["Questions au sujet de ces Conditions : contact@banditprice.com."],
   },
 ];
 
@@ -109,16 +109,16 @@ export default function TermsPage() {
                 BanditPrice
               </p>
               <h1 className="text-3xl font-bold tracking-tight">
-                Terms of Use
+                Conditions d'utilisation
               </h1>
             </div>
           </div>
           <p className="mt-4 text-sm text-slate-400">
-            Effective date: July 15, 2026
+            Date d'entrée en vigueur : 15 juillet 2026
           </p>
           <p className="mt-4 text-sm leading-6 text-slate-300">
-            These Terms are a practical baseline for the current app and should
-            be reviewed by qualified counsel before production launch.
+            Ces Conditions d'utilisation régissent votre accès au service
+            BanditPrice et votre utilisation du service.
           </p>
         </section>
 
@@ -141,12 +141,12 @@ export default function TermsPage() {
         </div>
 
         <div className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-5 text-sm text-slate-300">
-          See also our{" "}
+          Consultez aussi notre{" "}
           <Link
             href="/privacy"
             className="font-semibold text-cyan-200 underline"
           >
-            Privacy Policy
+            Politique de confidentialité
           </Link>
           .
         </div>

@@ -4,14 +4,14 @@ import { SlidersHorizontal } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/site-layout";
 
 const rights = [
-  "Access or know what personal information we process about you.",
-  "Request correction of inaccurate personal information.",
-  "Request deletion of personal information, subject to legal, security, billing, fraud-prevention, and operational retention needs.",
-  "Request a portable copy of information where required by law.",
-  "Object to or restrict certain processing where applicable.",
-  "Withdraw consent for optional location processing by changing browser permission or app location preferences.",
-  "Opt out of sale or sharing of personal information. BanditPrice does not currently sell personal information or intentionally share it for cross-context behavioral advertising.",
-  "Limit use of sensitive personal information where applicable. BanditPrice does not use sensitive personal information to infer characteristics.",
+  "Accéder aux renseignements personnels que nous traitons à votre sujet ou savoir quels renseignements personnels nous traitons.",
+  "Demander la correction de renseignements personnels inexacts.",
+  "Demander la suppression de renseignements personnels, sous réserve des besoins de conservation juridiques, de sécurité, de facturation, de prévention de la fraude et opérationnels.",
+  "Demander une copie portable des renseignements lorsque la loi l'exige.",
+  "Vous opposer à certains traitements ou en restreindre certains lorsque cela est applicable.",
+  "Retirer votre consentement au traitement optionnel de la localisation en modifiant l'autorisation du navigateur ou les préférences de localisation de l'application.",
+  "Vous opposer à la vente ou au partage de renseignements personnels. BanditPrice ne vend actuellement pas de renseignements personnels et ne les partage pas intentionnellement à des fins de publicité comportementale intercontextuelle.",
+  "Limiter l'utilisation des renseignements personnels sensibles lorsque cela est applicable. BanditPrice n'utilise pas les renseignements personnels sensibles pour déduire des caractéristiques.",
 ];
 
 export default function PrivacyChoicesPage() {
@@ -29,22 +29,23 @@ export default function PrivacyChoicesPage() {
                 BanditPrice
               </p>
               <h1 className="text-3xl font-bold tracking-tight">
-                Privacy Choices
+                Choix de confidentialité
               </h1>
             </div>
           </div>
           <p className="mt-4 text-sm text-slate-400">
-            Effective date: July 15, 2026
+            Date d'entrée en vigueur : 15 juillet 2026
           </p>
           <p className="mt-4 text-sm leading-6 text-slate-300">
-            Use this page to understand and exercise privacy choices available
-            under laws such as GDPR, UK GDPR, CCPA/CPRA, and similar regional
-            privacy laws.
+            Utilisez cette page pour comprendre et exercer les choix de
+            confidentialité disponibles en vertu de lois comme le RGPD, le RGPD
+            du Royaume-Uni, la CCPA/CPRA et les lois régionales similaires sur
+            la confidentialité.
           </p>
         </section>
 
         <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-5">
-          <h2 className="text-lg font-semibold">Your Rights</h2>
+          <h2 className="text-lg font-semibold">Vos droits</h2>
           <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
             {rights.map((right) => (
               <li key={right} className="flex gap-3">
@@ -56,58 +57,63 @@ export default function PrivacyChoicesPage() {
         </section>
 
         <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-5">
-          <h2 className="text-lg font-semibold">Submit a Request</h2>
+          <h2 className="text-lg font-semibold">Soumettre une demande</h2>
           <p className="mt-3 text-sm leading-6 text-slate-300">
-            Email us at{" "}
+            Envoyez-nous un courriel à{" "}
             <a
-              href="mailto:contact@banditprice.com?subject=Privacy%20Request"
+              href="mailto:thebanditprice@gmail.com?subject=Privacy%20Request"
               className="font-semibold text-cyan-200 underline"
             >
-              contact@banditprice.com
+              thebanditprice@gmail.com
             </a>{" "}
-            with the subject “Privacy Request”. Include the email address used
-            for your BanditPrice account and the right you want to exercise. We
-            may need to verify your identity before completing the request.
+            avec l'objet « Demande de confidentialité ». Incluez l'adresse
+            courriel utilisée pour votre compte BanditPrice et le droit que vous
+            souhaitez exercer. Nous pourrions devoir vérifier votre identité
+            avant de traiter la demande.
           </p>
           <p className="mt-3 text-sm leading-6 text-slate-300">
-            California authorized agents may submit requests using the same
-            email address. We may require proof of authorization and identity
-            verification consistent with applicable law.
-          </p>
-        </section>
-
-        <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-5">
-          <h2 className="text-lg font-semibold">Cookies and Location</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-300">
-            You can clear BanditPrice cookies in your browser to reset consent
-            and location preferences. You can revoke browser geolocation access
-            through your browser or operating system location settings. If you
-            revoke location access, you may still select a location manually
-            where the app provides that option.
+            Les agents autorisés de Californie peuvent soumettre des demandes à
+            la même adresse courriel. Nous pouvons exiger une preuve
+            d'autorisation et une vérification d'identité conformément à la loi
+            applicable.
           </p>
         </section>
 
         <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-5">
-          <h2 className="text-lg font-semibold">Sale or Sharing</h2>
+          <h2 className="text-lg font-semibold">Cookies et localisation</h2>
           <p className="mt-3 text-sm leading-6 text-slate-300">
-            BanditPrice does not currently sell personal information for money
-            and does not intentionally share personal information for
-            cross-context behavioral advertising. If our practices change, we
-            will update our notices and provide required opt-out controls.
+            Vous pouvez supprimer les cookies BanditPrice dans votre navigateur
+            pour réinitialiser le consentement et les préférences de
+            localisation. Vous pouvez révoquer l'accès à la géolocalisation du
+            navigateur dans les paramètres de votre navigateur ou de votre
+            système d'exploitation. Si vous révoquez l'accès à la localisation,
+            vous pouvez tout de même sélectionner une localisation manuellement
+            lorsque l'application offre cette option.
+          </p>
+        </section>
+
+        <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-5">
+          <h2 className="text-lg font-semibold">Vente ou partage</h2>
+          <p className="mt-3 text-sm leading-6 text-slate-300">
+            BanditPrice ne vend actuellement pas de renseignements personnels
+            contre de l'argent et ne partage pas intentionnellement des
+            renseignements personnels à des fins de publicité comportementale
+            intercontextuelle. Si nos pratiques changent, nous mettrons à jour
+            nos avis et fournirons les contrôles de retrait requis.
           </p>
         </section>
 
         <div className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-5 text-sm text-slate-300">
-          See also our{" "}
+          Consultez aussi notre{" "}
           <Link
             href="/privacy"
             className="font-semibold text-cyan-200 underline"
           >
-            Privacy Policy
+            Politique de confidentialité
           </Link>{" "}
-          and{" "}
+          et{" "}
           <Link href="/terms" className="font-semibold text-cyan-200 underline">
-            Terms of Use
+            Conditions d'utilisation
           </Link>
           .
         </div>
