@@ -306,12 +306,7 @@ export function HeroSection() {
   }, []);
 
   const prompts = [
-    { href: "/shop", label: "Pièces de véhicules", icon: Wrench },
-    {
-      href: "/construction",
-      label: "Matériaux de construction",
-      icon: HardHat,
-    },
+    { href: "/stepbystep", label: "Comment ça marche ?", icon: Wrench },
   ];
 
   return (
@@ -349,7 +344,7 @@ export function HeroSection() {
           <div className="w-full max-w-[480px] border border-[rgba(56,189,248,0.18)] rounded-[8px] bg-[rgba(10,16,26,0.7)] backdrop-blur-md overflow-hidden">
             <div className="flex items-center gap-1.5 px-4 py-[10px] text-[9px] text-white border-b border-[rgba(56,189,248,0.1)] tracking-[0.05em] uppercase">
               <Sparkles size={11} />
-              Recherche avancée
+              En savoir plus
             </div>
             <div className="flex flex-col p-2 gap-1">
               {prompts.map(({ href, label, icon: Icon }) => (

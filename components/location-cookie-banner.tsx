@@ -906,7 +906,7 @@ export function LocationCookieBanner() {
               type="button"
               onClick={useCurrentPosition}
               disabled={locating}
-              className="inline-flex h-8 flex-1 items-center justify-center gap-2 rounded-full bg-blue-600 px-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-70"
+              className="inline-flex h-8 flex-1 items-center justify-center gap-2 rounded-full bg-blue-600 py-1 px-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-70"
             >
               <LocateFixed className="h-4 w-4" />
               {locating ? "Détection en cours..." : "Utiliser ma position"}
@@ -914,7 +914,7 @@ export function LocationCookieBanner() {
             <button
               type="button"
               onClick={() => setManualOpen((value) => !value)}
-              className="inline-flex h-8 flex-1 items-center justify-center gap-2 rounded-full border border-slate-300 px-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+              className="inline-flex h-8 flex-1 items-center justify-center gap-2 rounded-full border border-slate-300 py-1 px-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
             >
               <SlidersHorizontal className="h-4 w-4" />
               Sélection manuelle
