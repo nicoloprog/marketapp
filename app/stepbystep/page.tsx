@@ -26,23 +26,11 @@ const englishPoints = [
   "Stay in control with your account, subscription, and clear monthly search limit.",
 ];
 
-function VideoPanel({
-  label,
-  language,
-  videoUrl,
-}: {
-  label: string;
-  language: string;
-  videoUrl: string;
-}) {
+function VideoPanel({ label, videoUrl }: { label: string; videoUrl: string }) {
   return (
     <div className="relative mx-auto aspect-[4/4.05] w-full max-w-[460px] overflow-hidden rounded-2xl border border-blue-300/15 bg-[#07111f] shadow-[0_24px_80px_rgba(2,6,23,0.32)]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.28),transparent_34%),linear-gradient(135deg,rgba(14,165,233,0.12),transparent_45%)]" />
-      <div className="absolute inset-x-6 top-6 z-10 flex items-center justify-between">
-        <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-blue-100 backdrop-blur">
-          {language}
-        </span>
-      </div>
+      <div className="absolute inset-x-6 top-6 z-10 flex items-center justify-between"></div>
 
       <div className="relative flex h-full min-h-[280px] items-center justify-center">
         {videoUrl ? (
@@ -89,12 +77,8 @@ export default function ExplicationPage() {
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 pb-16 pt-28 sm:px-6 lg:px-8">
         <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-300/15 bg-blue-400/10 px-3 py-1 text-xs font-semibold text-blue-100">
-              <Sparkles className="h-3.5 w-3.5" />
-              Explication en français
-            </div>
             <h1 className="mt-5 max-w-2xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              Comprendre BanditPrice en quelques minutes
+              Comprendre BanditPrice en quelques secondes
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
               BanditPrice vous aide à trouver rapidement les meilleurs prix en
@@ -107,7 +91,6 @@ export default function ExplicationPage() {
           </div>
 
           <VideoPanel
-            language="FR"
             label="Présentation BanditPrice en français"
             videoUrl={videoUrls.french}
           />
@@ -115,19 +98,14 @@ export default function ExplicationPage() {
 
         <section className="grid gap-8 border-t border-white/10 pt-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <VideoPanel
-            language="EN"
             label="BanditPrice overview in English"
             videoUrl={videoUrls.english}
           />
 
           <div className="lg:pl-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-300/15 bg-blue-400/10 px-3 py-1 text-xs font-semibold text-blue-100">
-              <Globe2 className="h-3.5 w-3.5" />
-              English explanation
-            </div>
-            <h2 className="mt-5 max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h1 className="mt-5 max-w-2xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
               A clear way to compare prices
-            </h2>
+            </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
               BanditPrice brings shopping results into one focused experience so
               users can compare offers, review prices, and move toward the
