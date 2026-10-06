@@ -310,11 +310,11 @@ export function HeroSection() {
   ];
 
   return (
-    <section className="relative justify-center min-h-[100svh] overflow-hidden">
+    <section className="relative h-[100dvh] min-h-[100svh] justify-center overflow-hidden bg-[#031129]">
       {/* Dot grid */}
       <div
         aria-hidden
-        className="absolute inset-0 z-[-1] overflow-hidden bg-[#02040a]" // Pure deep ocean abyss black
+        className="fixed inset-0 z-0 overflow-hidden bg-[#02040a]" // Pure deep ocean abyss black
       >
         {/* Layer 1: Subtle Deep Sea Trench Glow (Extremely dark blue gradient) */}
         <div
@@ -335,7 +335,7 @@ export function HeroSection() {
         />
       </div>
       {!acLoading && allParts.length === 0 && (
-        <div className="relative z-10 max-w-[680px] mx-auto min-h-[100svh] px-6 pt-12 md:pt-24 pb-10 md:pb-16 flex flex-col items-center justify-center text-center transition-opacity duration-300">
+        <div className="relative z-10 max-w-[680px] mx-auto h-[100dvh] min-h-[100svh] px-6 pt-12 md:pt-24 pb-10 md:pb-16 flex flex-col items-center justify-center text-center transition-opacity duration-300">
           <p className="text-[1.25rem] leading-[1.25] text-white/85 max-w-[500px] m-0 mb-[1.8rem]">
             Obtenez les meilleures offres sur <strong>l'épicerie</strong>,
             <strong>vêtements</strong>,<strong> pièces automobiles</strong>,

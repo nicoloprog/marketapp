@@ -4,9 +4,9 @@ import { StatsSection } from "@/components/home/stats-section";
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-[100dvh] min-h-[100svh] flex-col overflow-hidden bg-[#031129]">
       <SiteHeader />
-      <main className="flex-1">
+      <main className="flex-1 overflow-hidden">
         <HeroSection />
         {/* <StatsSection /> */}
         {/* <ServicesPreview />
