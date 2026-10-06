@@ -369,7 +369,7 @@ export function HeroSection() {
         </div>
       )}
       {/* ── Results panel — takes over the space once there's something to show ── */}
-      <div className="custom-scrollbar fixed inset-x-0 top-12 bottom-54 mx-auto w-full max-w-[98%] overflow-y-auto p-6 z-5">
+      <div className="custom-scrollbar fixed inset-x-0 top-12 bottom-36 mx-auto w-full max-w-[98%] overflow-y-auto px-4 pb-3 pt-6 md:bottom-48 md:p-6 z-5">
         {(acLoading || allParts.length > 0) && (
           <div className="w-full max-w-[900px] mt-6 text-left mx-auto">
             {acLoading ? (
