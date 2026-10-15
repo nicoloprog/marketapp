@@ -336,11 +336,6 @@ export function HeroSection() {
       </div>
       {!acLoading && allParts.length === 0 && (
         <div className="relative z-10 max-w-[680px] mx-auto h-[100dvh] min-h-[100svh] px-6 pt-12 md:pt-24 pb-10 md:pb-16 flex flex-col items-center justify-center text-center transition-opacity duration-300">
-          <p className="text-[1.25rem] leading-[1.25] text-white/85 max-w-[500px] m-0 mb-[1.8rem]">
-            Obtenez les meilleures offres sur <strong>l'épicerie</strong>,
-            <strong>vêtements</strong>,<strong> pièces automobiles</strong>,
-            <strong> matériaux de construction</strong> et plus encore.
-          </p>
           <div className="w-full max-w-[480px] border border-[rgba(56,189,248,0.18)] rounded-[8px] bg-[rgba(10,16,26,0.7)] backdrop-blur-md overflow-hidden">
             <div className="flex items-center gap-1.5 px-4 py-[10px] text-[9px] text-white border-b border-[rgba(56,189,248,0.1)] tracking-[0.05em] uppercase">
               <Sparkles size={11} />
